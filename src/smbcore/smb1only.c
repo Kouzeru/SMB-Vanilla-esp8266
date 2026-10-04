@@ -15,7 +15,7 @@ void Reset(void) {
   }
 
   InitializeMemory(initialize_upto);
-  OperMode = OM_TITLESCREEN;
+  OperMode = OM_UNK_0;
   apu_dmc_raw(0);
   WarmBootValidation = 0xa5;
   PseudoRandomBitReg[0] = 0xa5;
@@ -202,8 +202,8 @@ void PrintVictoryMessages(void) {
 
   WorldEndTimer = 6;
 
-  expect(OperMode_Task == OMT_VICTORY_PRINTVICTORYMESSAGES);
-  OperMode_Task = OMT_VICTORY_PLAYERENDWORLD;
+  expect(OperMode_Task == OMT_2_UNK_3);
+  OperMode_Task = OMT_2_UNK_4;
 }
 
 
@@ -286,7 +286,7 @@ void WriteGameText(const u8 param_1) {
   if (NumberOfPlayers != 0) {
     bool set_name_to_luigi = (CurrentPlayer & 1) != 0;
 
-    if ((param_1 == 2) && (OperMode != OM_GAMEOVER)) {
+    if ((param_1 == 2) && (OperMode != OM_UNK_3)) {
       // Time up message
       set_name_to_luigi = !set_name_to_luigi;
     }

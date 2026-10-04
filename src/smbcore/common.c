@@ -369,8 +369,8 @@ void DrawMushroomIcon(void) {
 
 
 static inline void GameMenuRoutine_ResetTitle() {
-  OperMode = OM_TITLESCREEN;
-  OperMode_Task = OMT_TITLESCREEN_START;
+  OperMode = OM_UNK_0;
+  OperMode_Task = OMT_0_START;
 
 #ifdef SMB1_MODE
   Sprite0HitDetectFlag = false;
@@ -455,7 +455,7 @@ void GameMenuRoutine(void) {
     }
 
     GameCoreRoutine();
-    if (GameEngineSubroutine == GR_PLAYERLOSELIFE) {
+    if (GameEngineSubroutine == GR_UNK_6) {
       GameMenuRoutine_ResetTitle();
     }
     return;
@@ -476,9 +476,9 @@ void GameMenuRoutine(void) {
     OffScr_Hidden1UpFlag = true;
     FetchNewGameTimerFlag = true;
 
-    expect(OperMode == OM_TITLESCREEN);
-    OperMode = OM_GAME;
-    OperMode_Task = OMT_GAME_INITIALIZEAREA;
+    expect(OperMode == OM_UNK_0);
+    OperMode = OM_UNK_1;
+    OperMode_Task = OMT_1_UNK_0;
 
     PrimaryHardMode = WorldSelectEnableFlag;
     DemoTimer = 0;
@@ -491,9 +491,9 @@ void GameMenuRoutine(void) {
     DiskIOTask = 0;
     HardWorldFlag = ((GamesBeatenCount >= 8) && button_a_pushed) ? 1 : 0;
 
-    expect(OperMode == OM_TITLESCREEN);
-    expect(OperMode_Task == OMT_TITLESCREEN_GAMEMENUROUTINE);
-    OperMode_Task = OMT_TITLESCREEN_HARDWORLDSCHECKPOINT;
+    expect(OperMode == OM_UNK_0);
+    expect(OperMode_Task == OMT_0_UNK_3);
+    OperMode_Task = OMT_0_UNK_5;
 
     PatchPlayerNamePal();
     WorldNumber = 0;
@@ -543,7 +543,7 @@ void GameMenuRoutine(void) {
   SavedJoypadBits1 = BUTTON_NONE;
 
   GameCoreRoutine();
-  if (GameEngineSubroutine == GR_PLAYERLOSELIFE) {
+  if (GameEngineSubroutine == GR_UNK_6) {
     GameMenuRoutine_ResetTitle();
   }
 }
@@ -553,7 +553,7 @@ void GameMenuRoutine(void) {
 // SM2MAIN:61e9
 // Signature: [] -> []
 void PauseRoutine(void) {
-  if ((OperMode == OM_VICTORY) || ((OperMode == OM_GAME && (OperMode_Task == OMT_GAME_GAMECOREROUTINE)))) {
+  if ((OperMode == OM_UNK_2) || ((OperMode == OM_UNK_1 && (OperMode_Task == OMT_1_UNK_3)))) {
     if (GamePauseTimer != 0) {
       GamePauseTimer -= 1;
       return;
@@ -601,27 +601,25 @@ void SpriteShuffler(void) {
 // SM2MAIN:6279
 // Signature: [] -> []
 void OperModeExecutionTree(void) {
-  switch (OperMode) {
-  case OM_TITLESCREEN:
+  const u8 param_1 = OperMode;
+
+  if (param_1 == OM_UNK_0) {
     TitleScreenMode();
     return;
-
-  case OM_GAME:
+  }
+  if (param_1 == OM_UNK_1) {
     GameMode();
     return;
-
-  case OM_VICTORY:
+  }
+  if (param_1 == OM_UNK_2) {
     VictoryMode();
     return;
-
-  case OM_GAMEOVER:
+  }
+  if (param_1 == OM_UNK_3) {
     GameOverMode();
     return;
-
-  default:
-    jmpengine_overflow(OperMode);
-    return;
   }
+  jmpengine_overflow(param_1);
 }
 
 
@@ -652,40 +650,39 @@ void TitleScreenMode(void) {
   // Note: In the SMB2J disassembly, this is called "AttractModeSubs".
   // We consolidated it into SMB1's "TitleScreenMode" for clarity.
 
-  switch (OperMode_Task) {
-  case OMT_TITLESCREEN_INITIALIZEGAME:
-    InitializeGame();
-    expect(OperMode == OM_TITLESCREEN);
-    OperMode_Task = OMT_TITLESCREEN_SCREENROUTINES;
-    return;
+  const u8 param_1 = OperMode_Task;
 
-  case OMT_TITLESCREEN_SCREENROUTINES:
+  if (param_1 == OMT_0_UNK_0) {
+    InitializeGame();
+    expect(OperMode == OM_UNK_0);
+    OperMode_Task = OMT_0_UNK_1;
+    return;
+  }
+  if (param_1 == OMT_0_UNK_1) {
     ScreenRoutines();
     return;
-
-  case OMT_TITLESCREEN_PRIMARYGAMESETUP:
+  }
+  if (param_1 == OMT_0_UNK_2) {
     PrimaryGameSetup();
-    expect(OperMode == OM_TITLESCREEN);
-    OperMode_Task = OMT_TITLESCREEN_GAMEMENUROUTINE;
+    expect(OperMode == OM_UNK_0);
+    OperMode_Task = OMT_0_UNK_3;
     return;
-
-  case OMT_TITLESCREEN_GAMEMENUROUTINE:
+  }
+  if (param_1 == OMT_0_UNK_3) {
     GameMenuRoutine();
     return;
-
+  }
 #ifdef SMB2J_MODE
-  case OMT_TITLESCREEN_ATTRACTMODEDISKROUTINES:
+  if (param_1 == OMT_0_UNK_4) {
     AttractModeDiskRoutines();
     return;
-
-  case OMT_TITLESCREEN_HARDWORLDSCHECKPOINT:
+  }
+  if (param_1 == OMT_0_UNK_5) {
     HardWorldsCheckpoint();
     return;
-#endif
-
-  default:
-    jmpengine_overflow(OperMode_Task);
   }
+#endif
+  jmpengine_overflow(param_1);
 }
 
 
@@ -709,15 +706,15 @@ bool DemoEngine(void) {
 // SM2MAIN:6298
 // Signature: [] -> []
 void VictoryMode(void) {
-  expect(OperMode == OM_VICTORY);
+  expect(OperMode == OM_UNK_2);
   VictoryModeSubroutines();
-  if (OperMode_Task != OMT_VICTORY_BRIDGECOLLAPSE) {
+  if (OperMode_Task != OMT_2_UNK_0) {
 #ifdef SMB2J_MODE
     if (WorldNumber == 7) {
-      if (OperMode_Task == OMT_VICTORY_W8SMB2J_VICTORYMODEDISKROUTINES) {
+      if (OperMode_Task == OMT_2_W8SMB2J_UNK_5) {
         return;
       }
-      if (OperMode_Task == OMT_VICTORY_W8SMB2J_ENDINGDISKROUTINES) {
+      if (OperMode_Task == OMT_2_W8SMB2J_UNK_13) {
         return;
       }
     }
@@ -740,36 +737,35 @@ void VictoryModeSubroutines(void) {
   }
 #endif
 
-  switch (OperMode_Task) {
-  case OMT_VICTORY_BRIDGECOLLAPSE:
+  const u8 param_1 = OperMode_Task;
+
+  if (param_1 == OMT_2_UNK_0) {
     BridgeCollapse();
     return;
-
-  case OMT_VICTORY_SETUPVICTORYMODE:
+  }
+  if (param_1 == OMT_2_UNK_1) {
     SetupVictoryMode();
     return;
-
-  case OMT_VICTORY_PLAYERVICTORYWALK:
+  }
+  if (param_1 == OMT_2_UNK_2) {
     PlayerVictoryWalk();
     return;
-
-  case OMT_VICTORY_PRINTVICTORYMESSAGES:
+  }
+  if (param_1 == OMT_2_UNK_3) {
     PrintVictoryMessages();
     return;
-
-  case OMT_VICTORY_PLAYERENDWORLD:
-    PlayerEndWorld();
-    return;
-
+  }
 #ifdef SMB2J_MODE
-  case OMT_VICTORY_ENDCASTLEAWARD:
+  if (param_1 == OMT_2_UNK_5) {
     EndCastleAward();
     return;
-#endif
-
-  default:
-    jmpengine_overflow(OperMode_Task);
   }
+#endif
+  if (param_1 == OMT_2_UNK_4) {
+    PlayerEndWorld();
+    return;
+  }
+  jmpengine_overflow(param_1);
 }
 
 
@@ -786,8 +782,8 @@ void SetupVictoryMode(void) {
   #endif
   EventMusicQueue = MUSIC_EVENT_BOWSERVICTORY;
 
-  expect(OperMode_Task == OMT_VICTORY_SETUPVICTORYMODE);
-  OperMode_Task = OMT_VICTORY_PLAYERVICTORYWALK;
+  expect(OperMode_Task == OMT_2_UNK_1);
+  OperMode_Task = OMT_2_UNK_2;
 }
 
 
@@ -813,9 +809,9 @@ void PlayerVictoryWalk(void) {
     VictoryWalkControl += 1;
   }
   if (VictoryWalkControl == 0) {
-    expect(OperMode == OM_VICTORY);
-    expect(OperMode_Task == OMT_VICTORY_PLAYERVICTORYWALK);
-    OperMode_Task = OMT_VICTORY_PRINTVICTORYMESSAGES;
+    expect(OperMode == OM_UNK_2);
+    expect(OperMode_Task == OMT_2_UNK_2);
+    OperMode_Task = OMT_2_UNK_3;
   }
 }
 
@@ -848,8 +844,8 @@ void PlayerEndWorld(void) {
 
     LoadAreaPointer();
     FetchNewGameTimerFlag = true;
-    OperMode = OM_GAME;
-    OperMode_Task = OMT_GAME_START;
+    OperMode = OM_UNK_1;
+    OperMode_Task = OMT_1_START;
   }
 }
 
@@ -967,93 +963,100 @@ void FloateyNumbersRoutine(const u8 objoff) {
 // SM2MAIN:64c5
 // Signature: [] -> []
 void ScreenRoutines(void) {
-  switch (ScreenRoutineTask) {
-  case SRT_INITSCREEN:
+  const u8 param_1 = ScreenRoutineTask;
+
+  if (param_1 == SRT_UNK_0) {
     InitScreen();
-    ScreenRoutineTask = SRT_SETUPINTERMEDIATE;
+    ScreenRoutineTask = SRT_UNK_1;
     return;
-
-  case SRT_SETUPINTERMEDIATE:
+  }
+  if (param_1 == SRT_UNK_1) {
     SetupIntermediate();
-    ScreenRoutineTask = SRT_WRITETOPSTATUSLINE;
+    ScreenRoutineTask = SRT_UNK_2;
     return;
-
-  case SRT_WRITETOPSTATUSLINE:
+  }
+  if (param_1 == SRT_UNK_2) {
     WriteGameText(0);
-    ScreenRoutineTask = SRT_WRITEBOTTOMSTATUSLINE;
+    ScreenRoutineTask = SRT_UNK_3;
     return;
-
-  case SRT_WRITEBOTTOMSTATUSLINE:
+  }
+  if (param_1 == SRT_UNK_3) {
     WriteBottomStatusLine();
-    ScreenRoutineTask = SRT_DISPLAYTIMEUP;
+    ScreenRoutineTask = SRT_UNK_4;
     return;
-
-  case SRT_DISPLAYTIMEUP:
+  }
+  if (param_1 == SRT_UNK_4) {
+    // Inlined: DisplayTimeUp
     if (GameTimerExpiredFlag) {
       GameTimerExpiredFlag = false;
       WriteGameText(2);
       // Inlined: ResetScreenTimer
       ScreenTimer = 7;
-      ScreenRoutineTask = SRT_RESETSPRITESANDSCREENTIMER_1;
+      ScreenRoutineTask = SRT_UNK_5;
       DisableScreenFlag = false;
     } else {
-      ScreenRoutineTask = SRT_DISPLAYINTERMEDIATE;
+      ScreenRoutineTask = SRT_UNK_6;
     }
     return;
-
-  case SRT_RESETSPRITESANDSCREENTIMER_1:
+  }
+  if (param_1 == SRT_UNK_5) {
+    // Inlined: ResetSpritesAndScreenTimer
     if (ScreenTimer == 0) {
       MoveAllSpritesOffscreen();
       // Inlined: ResetScreenTimer
       ScreenTimer = 7;
-      ScreenRoutineTask = SRT_DISPLAYINTERMEDIATE;
+      ScreenRoutineTask = SRT_UNK_6;
     }
     return;
-
-  case SRT_DISPLAYINTERMEDIATE:
+  }
+  if (param_1 == SRT_UNK_6) {
     DisplayIntermediate();
     return;
-
-  case SRT_RESETSPRITESANDSCREENTIMER_2:
+  }
+  if (param_1 == SRT_UNK_7) {
+    // Inlined: ResetSpritesAndScreenTimer
     if (ScreenTimer == 0) {
       MoveAllSpritesOffscreen();
       // Inlined: ResetScreenTimer
       ScreenTimer = 7;
-      ScreenRoutineTask = SRT_AREAPARSERTASKCONTROL;
+      ScreenRoutineTask = SRT_UNK_8;
     }
     return;
-
-  case SRT_AREAPARSERTASKCONTROL:
+  }
+  if (param_1 == SRT_UNK_8) {
+    // Inlined: AreaParserTaskControl
     DisableScreenFlag = true;
     do {
       AreaParserTaskHandler();
     } while (AreaParserTaskNum != 0);
     ColumnSets -= 1;
     if (ColumnSets < 0) {
-      ScreenRoutineTask = SRT_GETAREAPALETTE;
+      ScreenRoutineTask = SRT_UNK_9;
     }
     VRAM_Buffer_AddrCtrl = ADDRCTRL_VRAM_BUFFER2;
     return;
-
-  case SRT_GETAREAPALETTE:
+  }
+  if (param_1 == SRT_UNK_9) {
     GetAreaPalette();
-    ScreenRoutineTask = SRT_GETBACKGROUNDCOLOR;
+    ScreenRoutineTask = SRT_UNK_10;
     return;
-
-  case SRT_GETBACKGROUNDCOLOR:
+  }
+  if (param_1 == SRT_UNK_10) {
     GetBackgroundColor();
-    ScreenRoutineTask = SRT_GETALTERNATEPALETTE1;
+    ScreenRoutineTask = SRT_UNK_11;
     return;
-
-  case SRT_GETALTERNATEPALETTE1:
+  }
+  if (param_1 == SRT_UNK_11) {
+    // Inlined: GetAlternatePalette1
     if (AreaStyle == 1) {
       VRAM_Buffer_AddrCtrl = ADDRCTRL_MUSHROOMPALETTEDATA;
     }
-    ScreenRoutineTask = SRT_DRAWTITLESCREEN;
+    ScreenRoutineTask = SRT_UNK_12;
     return;
-
-  case SRT_DRAWTITLESCREEN:
-    if (OperMode == OM_TITLESCREEN) {
+  }
+  if (param_1 == SRT_UNK_12) {
+    // Inlined: DrawTitleScreen
+    if (OperMode == OM_UNK_0) {
 #ifdef SMB1_MODE
       // The drawing data for the title screen is stored in CHR ROM!
       for (int i = 0; i < 0x13A; i++) {
@@ -1064,16 +1067,17 @@ void ScreenRoutines(void) {
 #ifdef SMB2J_MODE
       VRAM_Buffer_AddrCtrl = ADDRCTRL_SMB2J_TITLESCREENGFXDATA;
 #endif
-      ScreenRoutineTask = SRT_CLEARBUFFERSDRAWICON;
+      ScreenRoutineTask = SRT_UNK_13;
     } else {
-      expect(OperMode == OM_GAME);
-      expect(OperMode_Task == OMT_GAME_SCREENROUTINES);
-      OperMode_Task = OMT_GAME_SECONDARYGAMESETUP;
+      expect(OperMode == OM_UNK_1);
+      expect(OperMode_Task == OMT_1_UNK_1);
+      OperMode_Task = OMT_1_UNK_2;
     }
     return;
-
-  case SRT_CLEARBUFFERSDRAWICON:
-    if (OperMode != OM_TITLESCREEN) {
+  }
+  if (param_1 == SRT_UNK_13) {
+    // Inlined: ClearBuffersDrawIcon
+    if (OperMode != OM_UNK_0) {
       unreachable();
 
       // Note: The original game increments the opermode task on non-titlescreen opermodes.
@@ -1087,35 +1091,36 @@ void ScreenRoutines(void) {
       Objects_Page[i] = 0;
     }
     DrawMushroomIcon();
-    ScreenRoutineTask = SRT_WRITETOPSCORE;
+    ScreenRoutineTask = SRT_UNK_14;
     return;
-
-  case SRT_WRITETOPSCORE:
-    expect(OperMode == OM_TITLESCREEN);
-    expect(OperMode_Task == OMT_TITLESCREEN_SCREENROUTINES);
+  }
+  if (param_1 == SRT_UNK_14) {
+    // Inlined: WriteTopScore
+    expect(OperMode == OM_UNK_0);
+    expect(OperMode_Task == OMT_0_UNK_1);
     WriteDigits(0xfa);
-    OperMode_Task = OMT_TITLESCREEN_PRIMARYGAMESETUP;
+    OperMode_Task = OMT_0_UNK_2;
     return;
-
+  }
 #ifdef SMB2J_MODE
-  case SRT_DEMORESET:
+  if (param_1 == SRT_UNK_15) {
+    // Inlined: DemoReset
     DemoTimer = 0x18;
     LoadAreaPointer();
     InitializeArea();
 
     // TODO: figure out for sure which opermode this is in
     switch (OperMode) {
-    case OM_TITLESCREEN: OperMode_Task = OMT_TITLESCREEN_PRIMARYGAMESETUP; break;
-    case OM_GAME: OperMode_Task = OMT_GAME_SECONDARYGAMESETUP; break;
-    case OM_GAMEOVER: OperMode_Task = OMT_GAMEOVER_RUNGAMEOVER; break;
+    case OM_UNK_0: OperMode_Task = OMT_0_UNK_2; break;
+    case OM_UNK_1: OperMode_Task = OMT_1_UNK_2; break;
+    case OM_UNK_3: OperMode_Task = OMT_3_UNK_2; break;
     default: unreachable(); break;
     }
     return;
+  }
 #endif
 
-  default:
-    jmpengine_overflow(ScreenRoutineTask);
-  }
+  jmpengine_overflow(param_1);
 }
 
 
@@ -1125,7 +1130,7 @@ void ScreenRoutines(void) {
 void InitScreen(void) {
   MoveAllSpritesOffscreen();
   InitializeNameTables();
-  if (OperMode != OM_TITLESCREEN) {
+  if (OperMode != OM_UNK_0) {
     VRAM_Buffer_AddrCtrl = ADDRCTRL_UNDERGROUNDPALETTEDATA;
   }
   // Note: Moved ScreenRoutineTask increment to caller
@@ -1272,34 +1277,34 @@ void WriteBottomStatusLine(void) {
 // SM2MAIN:6617
 // Signature: [] -> []
 void DisplayIntermediate(void) {
-  if (OperMode == OM_GAMEOVER) {
+  if (OperMode == OM_UNK_3) {
 
-    expect(OperMode_Task == OMT_GAMEOVER_SCREENROUTINES);
+    expect(OperMode_Task == OMT_3_UNK_1);
 #ifdef SMB1_MODE
     ScreenTimer = 0x12;
     WriteGameText(3);
-    OperMode_Task = OMT_GAMEOVER_RUNGAMEOVER;
+    OperMode_Task = OMT_3_UNK_2;
 #endif
 #ifdef SMB2J_MODE
     WriteGameText(3);
     if (WorldNumber != 8) {
-      OperMode_Task = OMT_GAMEOVER_RUNGAMEOVER;
+      OperMode_Task = OMT_3_UNK_2;
     } else {
-      ScreenRoutineTask = SRT_DEMORESET;
+      ScreenRoutineTask = SRT_UNK_15;
     }
 #endif
 
-  } else if (OperMode == OM_TITLESCREEN) {
+  } else if (OperMode == OM_UNK_0) {
 
-    expect(OperMode_Task == OMT_TITLESCREEN_SCREENROUTINES);
-    ScreenRoutineTask = SRT_AREAPARSERTASKCONTROL;
+    expect(OperMode_Task == OMT_0_UNK_1);
+    ScreenRoutineTask = SRT_UNK_8;
 
-  } else if (OperMode == OM_GAME) {
+  } else if (OperMode == OM_UNK_1) {
 
-    expect(OperMode_Task == OMT_GAME_SCREENROUTINES);
+    expect(OperMode_Task == OMT_1_UNK_1);
 
     if (AltEntranceControl != 0 || (AreaType != AREA_CASTLE && DisableIntermediate)) {
-      ScreenRoutineTask = SRT_AREAPARSERTASKCONTROL;
+      ScreenRoutineTask = SRT_UNK_8;
       return;
     }
 
@@ -1309,11 +1314,11 @@ void DisplayIntermediate(void) {
     ScreenTimer = 7;
     DisableScreenFlag = false;
 
-    ScreenRoutineTask = SRT_RESETSPRITESANDSCREENTIMER_2;
+    ScreenRoutineTask = SRT_UNK_7;
 
 #ifdef SMB2J_MODE
     if (WorldNumber == 8) {
-      ScreenRoutineTask = SRT_DEMORESET;
+      ScreenRoutineTask = SRT_UNK_15;
       DisableScreenFlag = true;
     }
 
@@ -1585,7 +1590,7 @@ void OutputNumbers(const u8 param_1) {
 void DigitsMathRoutine(const u8 param_1) {
   // In SMB1 and SMB2J, DigitModifier is often accessed as DigitModifier-1.
 
-  if (OperMode != OM_TITLESCREEN) {
+  if (OperMode != OM_UNK_0) {
     for (int i = 6; i >= 1; i--) {
       i8 bVar1 = DigitModifier_Minus1[i] + DisplayDigits[param_1 + i - 6];
       if (bVar1 >= 0) {
@@ -1810,7 +1815,7 @@ void SecondaryGameSetup(void) {
 // SM2MAIN:6f2d
 // Signature: [] -> []
 void GetAreaMusic(void) {
-  if (OperMode == OM_TITLESCREEN) {
+  if (OperMode == OM_UNK_0) {
     return;
   }
 
@@ -1846,7 +1851,7 @@ void Entrance_GameTimerSetup(void) {
   VerticalForceDown = 0x28;
   PlayerFacingDir = DIR_RIGHT;
   Player_Y_HighPos = 1;
-  Player_State = PLAYERSTATE_ONGROUND;
+  Player_State = PLAYERSTATE_UNK_0;
 
   // the memory was cleared from earlier in the original
   expect(Player_CollisionBits == 0);
@@ -1912,7 +1917,7 @@ void Entrance_GameTimerSetup(void) {
   }
 
   if (JoypadOverride != 0) {
-    Player_State = PLAYERSTATE_CLIMBING;
+    Player_State = PLAYERSTATE_UNK_3;
     InitBlock_XY_Pos(0);
     Block_Y_Position[0] = 0xf0;
     Setup_Vine(5, 0);
@@ -1928,7 +1933,7 @@ void Entrance_GameTimerSetup(void) {
     SetupBubble_buggy(buggy_argument_1, buggy_argument_2);
   }
 
-  GameEngineSubroutine = GR_PLAYERENTRANCE;
+  GameEngineSubroutine = GR_UNK_7;
 }
 
 
@@ -1946,8 +1951,8 @@ void PlayerLoseLife(void) {
   EventMusicQueue = MUSIC_EVENT_STOP;
   NumberofLives -= 1;
   if (NumberofLives >= 0x80) {
-    OperMode = OM_GAMEOVER;
-    OperMode_Task = OMT_GAMEOVER_SETUPGAMEOVER;
+    OperMode = OM_UNK_3;
+    OperMode_Task = OMT_3_UNK_0;
     return;
   }
   u8 bVar1 = WorldNumber * 2;
@@ -1973,22 +1978,20 @@ void PlayerLoseLife(void) {
 // SM2MAIN:7057
 // Signature: [] -> []
 void GameOverMode(void) {
-  switch (OperMode_Task) {
-  case OMT_GAMEOVER_SETUPGAMEOVER:
+  const u8 param_1 = OperMode_Task;
+  if (param_1 == OMT_3_UNK_0) {
     SetupGameOver();
     return;
-
-  case OMT_GAMEOVER_SCREENROUTINES:
+  }
+  if (param_1 == OMT_3_UNK_1) {
     ScreenRoutines();
     return;
-
-  case OMT_GAMEOVER_RUNGAMEOVER:
+  }
+  if (param_1 == OMT_3_UNK_2) {
     RunGameOver();
     return;
-
-  default:
-    jmpengine_overflow(OperMode_Task);
   }
+  jmpengine_overflow(param_1);
 }
 
 
@@ -1996,7 +1999,7 @@ void GameOverMode(void) {
 // SM2MAIN:7063
 // Signature: [] -> []
 void SetupGameOver(void) {
-  ScreenRoutineTask = SRT_INITSCREEN;
+  ScreenRoutineTask = SRT_UNK_0;
 #ifdef SMB1_MODE
   Sprite0HitDetectFlag = false;
 #endif
@@ -2006,8 +2009,8 @@ void SetupGameOver(void) {
 #endif
   EventMusicQueue = MUSIC_EVENT_GAMEOVER;
   DisableScreenFlag = true;
-  expect(OperMode_Task == OMT_GAMEOVER_SETUPGAMEOVER);
-  OperMode_Task = OMT_GAMEOVER_SCREENROUTINES;
+  expect(OperMode_Task == OMT_3_UNK_0);
+  OperMode_Task = OMT_3_UNK_1;
 }
 
 
@@ -2047,8 +2050,8 @@ void TerminateGame(void) {
   ContinueWorld = WorldNumber;
 #endif
   ScreenTimer = 0;
-  OperMode = OM_TITLESCREEN;
-  OperMode_Task = OMT_TITLESCREEN_START;
+  OperMode = OM_UNK_0;
+  OperMode_Task = OMT_0_START;
 }
 
 
@@ -2061,9 +2064,9 @@ void ContinueGame(void) {
   FetchNewGameTimerFlag = true;
   TimerControl = 0;
   PlayerStatus = PLAYERSTATUS_SMALL;
-  GameEngineSubroutine = GR_ENTRANCE_GAMETIMERSETUP;
-  OperMode = OM_GAME;
-  OperMode_Task = OMT_GAME_START;
+  GameEngineSubroutine = GR_UNK_0;
+  OperMode = OM_UNK_1;
+  OperMode_Task = OMT_1_START;
 }
 
 
@@ -2083,36 +2086,35 @@ void KillEnemies(const u8 param_1) {
 // SM2MAIN:7a37
 // Signature: [] -> []
 void GameMode(void) {
-  switch (OperMode_Task) {
-  case OMT_GAME_INITIALIZEAREA:
-    InitializeArea();
-    expect(OperMode == OM_GAME);
-    OperMode_Task = OMT_GAME_SCREENROUTINES;
-    return;
+  const u8 param_1 = OperMode_Task;
 
-  case OMT_GAME_SCREENROUTINES:
+  if (param_1 == OMT_1_UNK_0) {
+    InitializeArea();
+    expect(OperMode == OM_UNK_1);
+    OperMode_Task = OMT_1_UNK_1;
+    return;
+  }
+  if (param_1 == OMT_1_UNK_1) {
     ScreenRoutines();
     return;
-
-  case OMT_GAME_SECONDARYGAMESETUP:
+  }
+  if (param_1 == OMT_1_UNK_2) {
     SecondaryGameSetup();
-    expect(OperMode == OM_GAME);
-    OperMode_Task = OMT_GAME_GAMECOREROUTINE;
+    expect(OperMode == OM_UNK_1);
+    OperMode_Task = OMT_1_UNK_3;
     return;
-
-  case OMT_GAME_GAMECOREROUTINE:
+  }
+  if (param_1 == OMT_1_UNK_3) {
     GameCoreRoutine();
     return;
-
+  }
 #ifdef SMB2J_MODE
-  case OMT_GAME_GAMEMODEDISKROUTINES:
+  if (param_1 == OMT_1_UNK_4) {
     GameModeDiskRoutines();
     return;
-#endif
-
-  default:
-    jmpengine_overflow(OperMode_Task);
   }
+#endif
+  jmpengine_overflow(param_1);
 }
 
 
@@ -2143,14 +2145,14 @@ void GameCoreRoutine(void) {
 
   bool doreturn = true;
 
-  CONTINUE_ON(OM_TITLESCREEN, OMT_TITLESCREEN_GAMEMENUROUTINE);
-  CONTINUE_ON(OM_GAME, OMT_GAME_GAMECOREROUTINE);
-  CONTINUE_ON(OM_VICTORY, OMT_VICTORY_PRINTVICTORYMESSAGES);
-  CONTINUE_ON(OM_VICTORY, OMT_VICTORY_PLAYERENDWORLD);
+  CONTINUE_ON(OM_UNK_0, OMT_0_UNK_3);
+  CONTINUE_ON(OM_UNK_1, OMT_1_UNK_3);
+  CONTINUE_ON(OM_UNK_2, OMT_2_UNK_3);
+  CONTINUE_ON(OM_UNK_2, OMT_2_UNK_4);
 
 #ifdef SMB2J_MODE
-  CONTINUE_ON(OM_TITLESCREEN, OMT_TITLESCREEN_HARDWORLDSCHECKPOINT);
-  CONTINUE_ON(OM_VICTORY, OMT_VICTORY_ENDCASTLEAWARD);
+  CONTINUE_ON(OM_UNK_0, OMT_0_UNK_5);
+  CONTINUE_ON(OM_UNK_2, OMT_2_UNK_5);
 #endif
 
   if (doreturn) {
@@ -2351,62 +2353,60 @@ void GetScreenPosition(void) {
 // SM2MAIN:7ba2
 // Signature: [] -> []
 void GameRoutines(void) {
-  switch (GameEngineSubroutine) {
-  case GR_ENTRANCE_GAMETIMERSETUP:
+  const u8 param_1 = GameEngineSubroutine;
+  if (param_1 == GR_UNK_0) {
     Entrance_GameTimerSetup();
     return;
-
-  case GR_VINE_AUTOCLIMB:
+  }
+  if (param_1 == GR_UNK_1) {
     Vine_AutoClimb();
     return;
-
-  case GR_SIDEEXITPIPEENTRY:
+  }
+  if (param_1 == GR_UNK_2) {
     SideExitPipeEntry();
     return;
-
-  case GR_VERTICALPIPEENTRY:
+  }
+  if (param_1 == GR_UNK_3) {
     VerticalPipeEntry();
     return;
-
-  case GR_FLAGPOLESLIDE:
+  }
+  if (param_1 == GR_UNK_4) {
     FlagpoleSlide();
     return;
-
-  case GR_PLAYERENDLEVEL:
+  }
+  if (param_1 == GR_UNK_5) {
     PlayerEndLevel();
     return;
-
-  case GR_PLAYERLOSELIFE:
+  }
+  if (param_1 == GR_UNK_6) {
     PlayerLoseLife();
     return;
-
-  case GR_PLAYERENTRANCE:
+  }
+  if (param_1 == GR_UNK_7) {
     PlayerEntrance();
     return;
-
-  case GR_PLAYERCTRLROUTINE:
+  }
+  if (param_1 == GR_UNK_8) {
     PlayerCtrlRoutine();
     return;
-
-  case GR_PLAYERCHANGESIZE:
+  }
+  if (param_1 == GR_UNK_9) {
     PlayerChangeSize();
     return;
-
-  case GR_PLAYERINJURYBLINK:
+  }
+  if (param_1 == GR_UNK_10) {
     PlayerInjuryBlink();
     return;
-
-  case GR_PLAYERDEATH:
+  }
+  if (param_1 == GR_UNK_11) {
     PlayerDeath();
     return;
-
-  case GR_PLAYERFIREFLOWER:
+  }
+  if (param_1 == GR_UNK_12) {
     PlayerFireFlower();
     return;
-
-  default:
-    jmpengine_overflow(GameEngineSubroutine);
   }
+  jmpengine_overflow(param_1);
 }
 
 
@@ -2429,7 +2429,7 @@ void PlayerEntrance(void) {
       DisableCollisionDet = Player_Y_Position > 0x98;
       bVar1 = 1;
       if (DisableCollisionDet) {
-        Player_State = PLAYERSTATE_CLIMBING;
+        Player_State = PLAYERSTATE_UNK_3;
         bVar1 = 8;
         set_metatile(4, 11, MT_MOUNTAIN_R);
       }
@@ -2462,7 +2462,7 @@ void PlayerEntrance(void) {
   AltEntranceControl = 0;
   DisableCollisionDet = false;
   PlayerFacingDir = DIR_RIGHT;
-  GameEngineSubroutine = GR_PLAYERCTRLROUTINE;
+  GameEngineSubroutine = GR_UNK_8;
 }
 
 
@@ -2482,14 +2482,14 @@ void PlayerCtrlRoutine(void) {
   char cVar1;
   u8 cVar2;
 
-  if (GameEngineSubroutine != GR_PLAYERDEATH) {
+  if (GameEngineSubroutine != GR_UNK_11) {
     if ((AreaType == AREA_WATER) && ((Player_Y_HighPos != 1 || (Player_Y_Position >= 0xd0)))) {
       SavedJoypadBits1 = BUTTON_NONE;
     }
     A_B_Buttons        = SavedJoypadBits1 & (BUTTON_A | BUTTON_B);
     Up_Down_Buttons    = SavedJoypadBits1 & (BUTTON_U | BUTTON_D);
     Left_Right_Buttons = SavedJoypadBits1 & (BUTTON_L | BUTTON_R);
-    if ((((SavedJoypadBits1 & BUTTON_D) != 0) && (Player_State == PLAYERSTATE_ONGROUND)) && (Left_Right_Buttons != 0)) {
+    if ((((SavedJoypadBits1 & BUTTON_D) != 0) && (Player_State == PLAYERSTATE_UNK_0)) && (Left_Right_Buttons != 0)) {
       Left_Right_Buttons = BUTTON_NONE;
       Up_Down_Buttons = BUTTON_NONE;
     }
@@ -2519,13 +2519,13 @@ void PlayerCtrlRoutine(void) {
     expect(is_gameroutine_valid(GameEngineSubroutine));
 
     switch (GameEngineSubroutine) {
-    case GR_FLAGPOLESLIDE:
-    case GR_PLAYERLOSELIFE:
-    case GR_PLAYERCTRLROUTINE:
-    case GR_PLAYERCHANGESIZE:
-    case GR_PLAYERINJURYBLINK:
-    case GR_PLAYERDEATH:
-    case GR_PLAYERFIREFLOWER:
+    case GR_UNK_4:
+    case GR_UNK_6:
+    case GR_UNK_8:
+    case GR_UNK_9:
+    case GR_UNK_10:
+    case GR_UNK_11:
+    case GR_UNK_12:
       Player_SprAttrib &= INVBITS_u8(SPRATTR_DRAWBEHIND);
       break;
     }
@@ -2536,7 +2536,7 @@ void PlayerCtrlRoutine(void) {
     cVar2 = 0;
     if (GameTimerExpiredFlag || !CloudTypeOverride) {
       cVar2 = 1;
-      if (GameEngineSubroutine != GR_PLAYERDEATH) {
+      if (GameEngineSubroutine != GR_UNK_11) {
         if (!DeathMusicLoaded) {
           EventMusicQueue = MUSIC_EVENT_DEATH;
           DeathMusicLoaded = true;
@@ -2552,7 +2552,7 @@ void PlayerCtrlRoutine(void) {
         return;
       }
       if (EventMusicBuffer == 0) {
-        GameEngineSubroutine = GR_PLAYERLOSELIFE;
+        GameEngineSubroutine = GR_UNK_6;
       }
     }
   }
@@ -2567,7 +2567,7 @@ void Vine_AutoClimb(void) {
     SetEntr();
   } else {
     JoypadOverride = 8;
-    Player_State = PLAYERSTATE_CLIMBING;
+    Player_State = PLAYERSTATE_UNK_3;
     AutoControlPlayer(8);
   }
 }
@@ -2628,8 +2628,8 @@ void SideExitPipeEntry(void) {
 // Signature: [] -> [A]
 u8 ChgAreaMode(void) {
   DisableScreenFlag = true;
-  expect(OperMode == OM_GAME);
-  OperMode_Task = OMT_GAME_START;
+  expect(OperMode == OM_UNK_1);
+  OperMode_Task = OMT_1_START;
 #ifdef SMB1_MODE
   Sprite0HitDetectFlag = false;
 #endif
@@ -2708,7 +2708,7 @@ void PlayerDeath(void) {
 // Signature: [] -> []
 void DonePlayerTask(void) {
   TimerControl = 0;
-  GameEngineSubroutine = GR_PLAYERCTRLROUTINE;
+  GameEngineSubroutine = GR_UNK_8;
 }
 
 
@@ -2756,8 +2756,8 @@ void FlagpoleSlide(void) {
     }
     AutoControlPlayer(bVar1);
   } else {
-    expect(GameEngineSubroutine == GR_FLAGPOLESLIDE);
-    GameEngineSubroutine = GR_PLAYERENDLEVEL;
+    expect(GameEngineSubroutine == GR_UNK_4);
+    GameEngineSubroutine = GR_UNK_5;
   }
 }
 
@@ -2783,12 +2783,12 @@ void PlayerEndLevel(void) {
   }
 #endif
   if (!player_collides_dir(DIR_RIGHT)) {
-    if (StarFlagTaskControl == STARFLAGTASK_IDLE) {
-      StarFlagTaskControl = STARFLAGTASK_GAMETIMERFIREWORKS;
+    if (StarFlagTaskControl == STARFLAGTASK_UNK_0) {
+      StarFlagTaskControl = STARFLAGTASK_UNK_1;
     }
     Player_SprAttrib = 0x20;
   }
-  if (StarFlagTaskControl != STARFLAGTASK_DONE) {
+  if (StarFlagTaskControl != STARFLAGTASK_UNK_5) {
     return;
   }
   LevelNumber += 1;
@@ -2831,7 +2831,7 @@ void NextArea(void) {
 // Signature: [] -> []
 void PlayerMovementSubs(void) {
   if (PlayerSize == 0) {
-    if (Player_State == PLAYERSTATE_ONGROUND) {
+    if (Player_State == PLAYERSTATE_UNK_0) {
       CrouchingFlag = (Up_Down_Buttons & BUTTON_D) != 0;
     }
   } else {
@@ -2841,30 +2841,31 @@ void PlayerMovementSubs(void) {
   if (PlayerChangeSizeFlag) {
     return;
   }
-  if (Player_State != PLAYERSTATE_CLIMBING) {
+  if (Player_State != PLAYERSTATE_UNK_3) {
     ClimbSideTimer = 0x18;
   }
 
-  switch (Player_State) {
-  case PLAYERSTATE_ONGROUND:
+  const u8 param_1 = Player_State;
+
+  if (param_1 == PLAYERSTATE_UNK_0) {
     OnGroundStateSub();
     return;
-
-  case PLAYERSTATE_JUMPSWIM:
+  }
+  if (param_1 == PLAYERSTATE_UNK_1) {
     JumpSwimSub();
     return;
-
-  case PLAYERSTATE_FALLING:
+  }
+  if (param_1 == PLAYERSTATE_UNK_2) {
     FallingSub();
     return;
-
-  case PLAYERSTATE_CLIMBING:
+  }
+  if (param_1 == PLAYERSTATE_UNK_3) {
     ClimbingSub();
     return;
-
-  default:
-    jmpengine_overflow(Player_State);
   }
+  jmpengine_overflow(param_1);
+  return;
+
 }
 
 
@@ -2933,7 +2934,7 @@ void LRAir(void) {
   }
 #endif
 
-  if (GameEngineSubroutine == GR_PLAYERDEATH) {
+  if (GameEngineSubroutine == GR_UNK_11) {
     VerticalForce = 0x28;
   }
   MovePlayerVertically();
@@ -2988,7 +2989,7 @@ void ClimbingSub(void) {
 // SM2MAIN:7fbc
 // Signature: [] -> []
 void PlayerPhysicsSub(void) {
-  if (Player_State == PLAYERSTATE_CLIMBING) {
+  if (Player_State == PLAYERSTATE_UNK_3) {
     const u8 vertdir = up_down_buttons_as_vertdir();
 
     if (player_collides_vertdir(vertdir)) {
@@ -3012,12 +3013,12 @@ void PlayerPhysicsSub(void) {
 
   const bool button_a_newly_pressed = ((A_B_Buttons & BUTTON_A) != 0) && ((A_B_Buttons & BUTTON_A & PreviousA_B_Buttons) == 0);
   if ((JumpspringAnimCtrl == 0) && button_a_newly_pressed) {
-    if (Player_State == PLAYERSTATE_ONGROUND || (SwimmingFlag && (JumpSwimTimer != 0 || (Player_Y_Speed >= 0)))) {
+    if (Player_State == PLAYERSTATE_UNK_0 || (SwimmingFlag && (JumpSwimTimer != 0 || (Player_Y_Speed >= 0)))) {
       JumpSwimTimer = 0x20;
       Player_YMF_Dummy = 0;
       JumpOrigin_Y_HighPos = Player_Y_HighPos;
       JumpOrigin_Y_Position = Player_Y_Position;
-      Player_State = PLAYERSTATE_JUMPSWIM;
+      Player_State = PLAYERSTATE_UNK_1;
 
       u8 bVar1;
       if (!SwimmingFlag) {
@@ -3081,7 +3082,7 @@ void PlayerPhysicsSub(void) {
   const bool holding_b = (A_B_Buttons & BUTTON_B) != 0;
   const bool running = same_direction && holding_b;
 
-  if (Player_State == PLAYERSTATE_ONGROUND) {
+  if (Player_State == PLAYERSTATE_UNK_0) {
     // ProcPRun
     if ((AreaType != AREA_WATER)) {
       if (running) {
@@ -3097,7 +3098,7 @@ void PlayerPhysicsSub(void) {
     bVar1 = 0;
   }
 
-  bVar2 = (Player_State == PLAYERSTATE_ONGROUND && AreaType == AREA_WATER) ? 1 : 0;
+  bVar2 = (Player_State == PLAYERSTATE_UNK_0 && AreaType == AREA_WATER) ? 1 : 0;
 
   if (bVar1) {
     bVar2 += 1;
@@ -3112,7 +3113,7 @@ void PlayerPhysicsSub(void) {
   // getxphy
   MaximumLeftSpeed  = max_left_xspd_lookup[bVar2];
   MaximumRightSpeed = max_right_xspd_lookup[bVar2];
-  if (GameEngineSubroutine == GR_PLAYERENTRANCE) {
+  if (GameEngineSubroutine == GR_UNK_7) {
     MaximumRightSpeed = 12;
   }
 
@@ -3223,7 +3224,7 @@ void ProcFireball_Bubble(void) {
     cond &= Fireball_State[FireballCounter & 1] == 0;
     cond &= Player_Y_HighPos == 1;
     cond &= !CrouchingFlag;
-    cond &= Player_State != PLAYERSTATE_CLIMBING;
+    cond &= Player_State != PLAYERSTATE_UNK_3;
 
     if (cond) {
       Square1SoundQueue = SOUND_SQ1_FIREBALL;
@@ -3381,7 +3382,7 @@ void SetupBubble_buggy(const u8 buggy_argument_1, const u8 buggy_argument_2) {
 // SM2MAIN:82bb
 // Signature: [] -> []
 void RunGameTimer(void) {
-  if (OperMode == OM_TITLESCREEN) {
+  if (OperMode == OM_UNK_0) {
     return;
   }
 
@@ -3405,10 +3406,10 @@ void RunGameTimer(void) {
 
   // GameEngineSubroutine >= 8 and GameEngineSubroutine != 11
   switch (GameEngineSubroutine) {
-  case GR_PLAYERCTRLROUTINE:
-  case GR_PLAYERCHANGESIZE:
-  case GR_PLAYERINJURYBLINK:
-  case GR_PLAYERFIREFLOWER:
+  case GR_UNK_8:
+  case GR_UNK_9:
+  case GR_UNK_10:
+  case GR_UNK_12:
   {
     const bool is_time_up = GameTimerDisplay[0] == 0 && GameTimerDisplay[1] == 0 && GameTimerDisplay[2] == 0;
     if (is_time_up) {
@@ -3512,7 +3513,7 @@ void FlagpoleRoutine(void) {
   static const u8 score_digits[5] = { 3, 3, 4, 4, 4 };
   static const u8 score_mods[5]   = { 5, 2, 8, 4, 1 };
 
-  if ((GameEngineSubroutine == GR_FLAGPOLESLIDE) && (Player_State == PLAYERSTATE_CLIMBING)) {
+  if ((GameEngineSubroutine == GR_UNK_4) && (Player_State == PLAYERSTATE_UNK_3)) {
     if ((Enemy_Y_Position[5] >= 0xaa) || (Player_Y_Position >= 0xa2)) {
       bool cond = false;
 
@@ -3528,7 +3529,7 @@ void FlagpoleRoutine(void) {
         DigitModifier[score_digits[FlagpoleScore]] = score_mods[FlagpoleScore];
         AddToScore();
       }
-      GameEngineSubroutine = GR_PLAYERENDLEVEL;
+      GameEngineSubroutine = GR_UNK_5;
     } else {
       const bool bVar3 = Player_Y_Position >= 0xa2;
       const u8 bVar1 = (Enemy_YMF_Dummy[5] - 1) + bVar3;
@@ -4734,13 +4735,13 @@ void ProcLoopCommand(const u8 objoff) {
           continue;
         }
 
-        if (Player_Y_Position == LoopCmdYPosition[idx] && Player_State == PLAYERSTATE_ONGROUND) {
+        if (Player_Y_Position == LoopCmdYPosition[idx] && Player_State == PLAYERSTATE_UNK_0) {
           MultiLoopCorrectCntr += 1;
         }
 
 #ifdef SMB1_MODE
         if (WorldNumber != 6) {
-          if (Player_Y_Position != LoopCmdYPosition[idx] || Player_State != PLAYERSTATE_ONGROUND) {
+          if (Player_Y_Position != LoopCmdYPosition[idx] || Player_State != PLAYERSTATE_UNK_0) {
             ExecGameLoopback(idx);
             KillAllEnemies();
           }
@@ -4922,144 +4923,218 @@ void CheckpointEnemyID(const u8 param_1) {
   // Enemy_ID = 0,2,6 (HandleGroupEnemies)
   const u8 objoff = param_1;
 
-  switch (actor_id) {
-  case A_GREEN_KOOPA:
-  case A_RED_KOOPA_GREENLIKE:
-  case A_BUZZY_BEETLE:
-    InitNormalEnemy(param_1);
+  if (actor_id == 0) {
+    InitNormalEnemy(objoff);
     return;
-
-  case A_RED_KOOPA:
+  }
+  if (actor_id == 1) {
+    InitNormalEnemy(objoff);
+    return;
+  }
+  if (actor_id == 2) {
+    InitNormalEnemy(objoff);
+    return;
+  }
+  if (actor_id == 3) {
     InitRedKoopa(objoff);
     return;
-
-  case A_PIRANHA_PLANT_SMB2J:
-
+  }
+  if (actor_id == 4) {
 #ifdef SMB2J_MODE
     InitPiranhaPlant(objoff);
 #endif
-
     return;
-
-  case A_HAMMER_BRO:
+  }
+  if (actor_id == 5) {
     InitHammerBro(objoff);
     return;
-
-  case A_GOOMBA:
-    InitGoomba(param_1);
+  }
+  if (actor_id == 6) {
+    InitGoomba(objoff);
     return;
-
-  case A_BLOOBER:
+  }
+  if (actor_id == 7) {
     InitBloober(objoff);
     return;
-
-  case A_BULLET_BILL:
+  }
+  if (actor_id == 8) {
     InitBulletBill(objoff);
     return;
-
-  case A_CHEEPCHEEP_GRAY:
-  case A_CHEEPCHEEP_RED:
+  }
+  if (actor_id == 9) {
+    return;
+  }
+  if (actor_id == 10) {
     InitCheepCheep(objoff);
     return;
-
-  case A_PODOBOO:
+  }
+  if (actor_id == 0xb) {
+    InitCheepCheep(objoff);
+    return;
+  }
+  if (actor_id == 0xc) {
     InitPodoboo(objoff);
     return;
-
-  case A_PIRANHA_PLANT:
+  }
+  if (actor_id == 0xd) {
     InitPiranhaPlant(objoff);
     return;
-
-  case A_GREEN_PARATROOPA:
+  }
+  if (actor_id == 0xe) {
     InitJumpGPTroopa(objoff);
     return;
-
-  case A_RED_PARATROOPA:
+  }
+  if (actor_id == 0xf) {
     InitRedPTroopa(objoff);
     return;
-
-  case A_GREEN_PARATROOPA_HORIZONTAL:
+  }
+  if (actor_id == 0x10) {
     InitHorizFlySwimEnemy(objoff);
     return;
-
-  case A_LAKITU:
+  }
+  if (actor_id == 0x11) {
     InitLakitu(objoff);
     return;
-
-  case A_SPINY:
-  case A_FLYING_CHEEPCHEEP:
-  case A_BOWSER_FLAME:
-  case A_FIREWORKS:
-  case A_BULLET_BILL_OR_CHEEPCHEEP_FRENZY:
+  }
+  if (actor_id == 0x12) {
     InitEnemyFrenzy(objoff);
     return;
-
-  case A_STOP_FRENZY:
+  }
+  if (actor_id == 0x13) {
+    return;
+  }
+  if (actor_id == 0x14) {
+    InitEnemyFrenzy(objoff);
+    return;
+  }
+  if (actor_id == 0x15) {
+    InitEnemyFrenzy(objoff);
+    return;
+  }
+  if (actor_id == 0x16) {
+    InitEnemyFrenzy(objoff);
+    return;
+  }
+  if (actor_id == 0x17) {
+    InitEnemyFrenzy(objoff);
+    return;
+  }
+  if (actor_id == 0x18) {
     EndFrenzy(objoff);
     return;
-
-  case A_FIREBAR_1:
-  case A_FIREBAR_2:
-  case A_FIREBAR_3:
-  case A_FIREBAR_4:
+  }
+  if (actor_id == 0x19) {
+    return;
+  }
+  if (actor_id == 0x1a) {
+    return;
+  }
+  if (actor_id == 0x1b) {
     InitShortFirebar(objoff);
     return;
-
-  case A_FIREBAR_5:
+  }
+  if (actor_id == 0x1c) {
+    InitShortFirebar(objoff);
+    return;
+  }
+  if (actor_id == 0x1d) {
+    InitShortFirebar(objoff);
+    return;
+  }
+  if (actor_id == 0x1e) {
+    InitShortFirebar(objoff);
+    return;
+  }
+  if (actor_id == 0x1f) {
     InitLongFirebar(objoff);
     return;
-
-  case A_LARGEPLATFORM_BALANCE:
+  }
+  if (actor_id == 0x20) {
+    return;
+  }
+  if (actor_id == 0x21) {
+    return;
+  }
+  if (actor_id == 0x22) {
+    return;
+  }
+  if (actor_id == 0x23) {
+    return;
+  }
+  if (actor_id == 0x24) {
     InitBalPlatform(objoff);
     return;
-
-  case A_LARGEPLATFORM_Y_MOVING:
+  }
+  if (actor_id == 0x25) {
     InitVertPlatform(objoff);
     return;
-
-  case A_LARGEPLATFORM_LIFT1:
+  }
+  if (actor_id == 0x26) {
     LargeLiftUp(objoff);
     return;
-
-  case A_LARGEPLATFORM_LIFT2:
+  }
+  if (actor_id == 0x27) {
     LargeLiftDown(objoff);
     return;
-
-  case A_LARGEPLATFORM_X_MOVING:
-  case A_LARGEPLATFORM_RIGHT:
+  }
+  if (actor_id == 0x28) {
     InitHoriPlatform(objoff);
     return;
-
-  case A_LARGEPLATFORM_DROP:
+  }
+  if (actor_id == 0x29) {
     InitDropPlatform(objoff);
     return;
-
-  case A_SMALLPLATFORM_1:
+  }
+  if (actor_id == 0x2a) {
+    InitHoriPlatform(objoff);
+    return;
+  }
+  if (actor_id == 0x2b) {
     PlatLiftUp(objoff);
     return;
-
-  case A_SMALLPLATFORM_2:
+  }
+  if (actor_id == 0x2c) {
     PlatLiftDown(objoff);
     return;
-
-  case A_BOWSER:
+  }
+  if (actor_id == 0x2d) {
     InitBowser(objoff);
     return;
-
-  case A_POWERUP:
+  }
+  if (actor_id == 0x2e) {
     PwrUpJmp();
     return;
-
-  case A_VINE:
+  }
+  if (actor_id == 0x2f) {
     // NES note: Y is set to 0x60 by the jump engine and used by Setup_Vine. This is a bug.
     // The bug is worked around in Setup_Vine.
     Setup_Vine(objoff, 0x60);
     return;
-
-  case A_RETAINER:
+  }
+  if (actor_id == 0x30) {
+    return;
+  }
+  if (actor_id == 0x31) {
+    return;
+  }
+  if (actor_id == 0x32) {
+    return;
+  }
+  if (actor_id == 0x33) {
+    return;
+  }
+  if (actor_id == 0x34) {
+    return;
+  }
+  if (actor_id == 0x35) {
     InitRetainerObj(objoff);
     return;
   }
+  if (actor_id == 0x36) {
+    return;
+  }
+  jmpengine_overflow(actor_id);
+
 }
 
 
@@ -5789,34 +5864,32 @@ void InitEnemyFrenzy(const u8 objoff) {
   const u8 actor_id = actor_get_id(objoff);
   EnemyFrenzyBuffer = actor_id;
 
-  switch (actor_id) {
-  case A_SPINY:
+  const u8 param_1 = actor_id - A_SPINY;
+
+  if (actor_id == A_SPINY) {
     LakituAndSpinyHandler(objoff);
     return;
-
-  case A_FLYING_CHEEPCHEEP:
-    InitFlyingCheepCheep(objoff);
-    return;
-
-  case A_BOWSER_FLAME:
-    InitBowserFlame(objoff);
-    return;
-
-  case A_FIREWORKS:
-    InitFireworks(objoff);
-    return;
-
-  case A_BULLET_BILL_OR_CHEEPCHEEP_FRENZY:
-    BulletBillCheepCheep(objoff);
-    return;
-
-  case A_UNK_0x13:
-    return;
-
-  default:
-    jmpengine_overflow(actor_id - A_SPINY);
+  }
+  if (actor_id == A_UNK_0x13) {
     return;
   }
+  if (actor_id == A_FLYING_CHEEPCHEEP) {
+    InitFlyingCheepCheep(objoff);
+    return;
+  }
+  if (actor_id == A_BOWSER_FLAME) {
+    InitBowserFlame(objoff);
+    return;
+  }
+  if (actor_id == A_FIREWORKS) {
+    InitFireworks(objoff);
+    return;
+  }
+  if (actor_id == A_BULLET_BILL_OR_CHEEPCHEEP_FRENZY) {
+    BulletBillCheepCheep(objoff);
+    return;
+  }
+  jmpengine_overflow(param_1);
 }
 
 
@@ -5973,71 +6046,150 @@ void PosPlatform(const u8 objoff, const u8 param_2) {
 void RunEnemyObjectsCore(const u8 objoff) {
   const u8 actor_id = actor_get_id(objoff);
 
-  if (is_actor_enemy(actor_id)) {
+  u8 bVar1;
+  u8 bVar2;
+
+  bVar1 = 0;
+  bVar2 = Enemy_ID[objoff];
+  if (bVar2 >= 0x15) {
+    bVar1 = (bVar2 - 0x14) - (bVar2 < 0x15);
+  }
+
+  const u8 param_1 = bVar1;
+
+  if (param_1 == 0) {
     RunNormalEnemies(objoff);
     return;
   }
-
-  if (is_actor_platform_large(actor_id)) {
-    RunLargePlatform(objoff);
+  if (param_1 == 1) {
+    RunBowserFlame(objoff);
     return;
   }
-
-  if (is_actor_firebar(actor_id)) {
+  if (param_1 == 2) {
+    RunFireworks(objoff);
+    return;
+  }
+  if (param_1 == 3) {
+    return;
+  }
+  if (param_1 == 4) {
+    return;
+  }
+  if (param_1 == 5) {
+    return;
+  }
+  if (param_1 == 6) {
+    return;
+  }
+  if (param_1 == 7) {
     RunFirebarObj(objoff);
     return;
   }
-
-  if (actor_id == A_UNK_0x36 || is_actor_groupenemy(actor_id) || !is_actor_valid(actor_id)) {
-    jmpengine_overflow(actor_id - 0x14);
+  if (param_1 == 8) {
+    RunFirebarObj(objoff);
     return;
   }
-
-  switch (actor_id) {
-  case A_BOWSER_FLAME:
-    RunBowserFlame(objoff);
+  if (param_1 == 9) {
+    RunFirebarObj(objoff);
     return;
-
-  case A_FIREWORKS:
-    RunFireworks(objoff);
+  }
+  if (param_1 == 10) {
+    RunFirebarObj(objoff);
     return;
-
-  case A_SMALLPLATFORM_1:
-  case A_SMALLPLATFORM_2:
+  }
+  if (param_1 == 0xb) {
+    RunFirebarObj(objoff);
+    return;
+  }
+  if (param_1 == 0xc) {
+    RunFirebarObj(objoff);
+    return;
+  }
+  if (param_1 == 0xd) {
+    RunFirebarObj(objoff);
+    return;
+  }
+  if (param_1 == 0xe) {
+    RunFirebarObj(objoff);
+    return;
+  }
+  if (param_1 == 0xf) {
+    return;
+  }
+  if (param_1 == 0x10) {
+    RunLargePlatform(objoff);
+    return;
+  }
+  if (param_1 == 0x11) {
+    RunLargePlatform(objoff);
+    return;
+  }
+  if (param_1 == 0x12) {
+    RunLargePlatform(objoff);
+    return;
+  }
+  if (param_1 == 0x13) {
+    RunLargePlatform(objoff);
+    return;
+  }
+  if (param_1 == 0x14) {
+    RunLargePlatform(objoff);
+    return;
+  }
+  if (param_1 == 0x15) {
+    RunLargePlatform(objoff);
+    return;
+  }
+  if (param_1 == 0x16) {
+    RunLargePlatform(objoff);
+    return;
+  }
+  if (param_1 == 0x17) {
     RunSmallPlatform(objoff);
     return;
-
-  case A_BOWSER:
+  }
+  if (param_1 == 0x18) {
+    RunSmallPlatform(objoff);
+    return;
+  }
+  if (param_1 == 0x19) {
     RunBowser(objoff);
     return;
-
-  case A_POWERUP:
+  }
+  if (param_1 == 0x1a) {
     // NES note: Power ups are always set to index 5.
     // The original makes this assumption in PowerUpObjHandler
     expect(objoff == 5);
     PowerUpObjHandler(objoff);
     return;
-
-  case A_VINE:
+  }
+  if (param_1 == 0x1b) {
     VineObjectHandler(objoff);
     return;
-
-  case A_STARFLAG:
+  }
+  if (param_1 == 0x1c) {
+    return;
+  }
+  if (param_1 == 0x1d) {
     RunStarFlagObj(objoff);
     return;
-
-  case A_JUMPSPRING:
+  }
+  if (param_1 == 0x1e) {
     JumpspringHandler(objoff);
     return;
-
-  case A_WARPZONE:
+  }
+  if (param_1 == 0x1f) {
+    return;
+  }
+  if (param_1 == 0x20) {
     WarpZoneObject(objoff);
     return;
-
-  case A_RETAINER:
+  }
+  if (param_1 == 0x21) {
     RunRetainerObj(objoff);
     return;
   }
+  jmpengine_overflow(param_1);
 }
 
 
@@ -6082,69 +6234,95 @@ void EnemyMovementSubs(const u8 objoff) {
     return;
   }
 
-  switch (actor_id) {
-  case A_GREEN_KOOPA:
-  case A_RED_KOOPA_GREENLIKE:
-  case A_BUZZY_BEETLE:
-  case A_RED_KOOPA:
-  case A_GOOMBA:
-  case A_SPINY:
+  const u8 param_1 = actor_id;
+
+  if (param_1 == 0) {
     MoveNormalEnemy(objoff);
     return;
-
-  case A_PIRANHA_PLANT_SMB2J:
+  }
+  if (param_1 == 1) {
+    MoveNormalEnemy(objoff);
+    return;
+  }
+  if (param_1 == 2) {
+    MoveNormalEnemy(objoff);
+    return;
+  }
+  if (param_1 == 3) {
+    MoveNormalEnemy(objoff);
+    return;
+  }
+  if (param_1 == 4) {
 #ifdef SMB2J_MODE
     MoveUpsideDownPiranhaP(objoff);
 #else
     MoveNormalEnemy(objoff);
 #endif
     return;
-
-  case A_HAMMER_BRO:
+  }
+  if (param_1 == 5) {
     ProcHammerBro(objoff);
     return;
-
-  case A_BLOOBER:
+  }
+  if (param_1 == 6) {
+    MoveNormalEnemy(objoff);
+    return;
+  }
+  if (param_1 == 7) {
     MoveBloober(objoff, false);
     return;
-
-  case A_BULLET_BILL:
+  }
+  if (param_1 == 8) {
     MoveBulletBill(objoff);
     return;
-
-  case A_CHEEPCHEEP_GRAY:
-  case A_CHEEPCHEEP_RED:
+  }
+  if (param_1 == 9) {
+    return;
+  }
+  if (param_1 == 10) {
     MoveSwimmingCheepCheep(objoff);
     return;
-
-  case A_PODOBOO:
+  }
+  if (param_1 == 0xb) {
+    MoveSwimmingCheepCheep(objoff);
+    return;
+  }
+  if (param_1 == 0xc) {
     MovePodoboo(objoff);
     return;
-
-  case A_PIRANHA_PLANT:
+  }
+  if (param_1 == 0xd) {
     MovePiranhaPlant(objoff);
     return;
-
-  case A_GREEN_PARATROOPA:
+  }
+  if (param_1 == 0xe) {
     MoveJumpingEnemy(objoff);
     return;
-
-  case A_RED_PARATROOPA:
+  }
+  if (param_1 == 0xf) {
     ProcMoveRedPTroopa(objoff);
     return;
-
-  case A_GREEN_PARATROOPA_HORIZONTAL:
+  }
+  if (param_1 == 0x10) {
     MoveFlyGreenPTroopa(objoff);
     return;
-
-  case A_LAKITU:
+  }
+  if (param_1 == 0x11) {
     MoveLakitu(objoff);
     return;
-
-  case A_FLYING_CHEEPCHEEP:
+  }
+  if (param_1 == 0x12) {
+    MoveNormalEnemy(objoff);
+    return;
+  }
+  if (param_1 == 0x13) {
+    return;
+  }
+  if (param_1 == 0x14) {
     MoveFlyingCheepCheep(objoff);
     return;
   }
+  jmpengine_overflow(param_1);
 }
 
 
@@ -6207,38 +6385,38 @@ void RunLargePlatform(const u8 objoff) {
 // Signature: [X] -> []
 void LargePlatformSubroutines(const u8 objoff) {
   const u8 actor_id = actor_get_id(objoff);
+  const u8 param_1 = actor_id - 0x24;
+  const u8 param_2 = objoff;
 
-  if (!is_actor_platform_large(actor_id)) {
-    jmpengine_overflow(actor_id - A_LARGEPLATFORM_BALANCE);
+  if (param_1 == 0) {
+    BalancePlatform(param_2);
     return;
   }
-
-  switch (actor_id) {
-  case A_LARGEPLATFORM_BALANCE:
-    BalancePlatform(objoff);
-    return;
-
-  case A_LARGEPLATFORM_Y_MOVING:
-    YMovingPlatform(objoff);
-    return;
-
-  case A_LARGEPLATFORM_LIFT1:
-  case A_LARGEPLATFORM_LIFT2:
-    MoveLargeLiftPlat(objoff);
-    return;
-
-  case A_LARGEPLATFORM_X_MOVING:
-    XMovingPlatform(objoff);
-    return;
-
-  case A_LARGEPLATFORM_DROP:
-    DropPlatform(objoff);
-    return;
-
-  case A_LARGEPLATFORM_RIGHT:
-    RightPlatform(objoff);
+  if (param_1 == 1) {
+    YMovingPlatform(param_2);
     return;
   }
+  if (param_1 == 2) {
+    MoveLargeLiftPlat(param_2);
+    return;
+  }
+  if (param_1 == 3) {
+    MoveLargeLiftPlat(param_2);
+    return;
+  }
+  if (param_1 == 4) {
+    XMovingPlatform(param_2);
+    return;
+  }
+  if (param_1 == 5) {
+    DropPlatform(param_2);
+    return;
+  }
+  if (param_1 == 6) {
+    RightPlatform(param_2);
+    return;
+  }
+  jmpengine_overflow(param_1);
 }
 
 
@@ -7036,9 +7214,9 @@ void BridgeCollapse(void) {
     }
   }
   EventMusicQueue = MUSIC_EVENT_STOP;
-  expect(OperMode == OM_VICTORY);
-  expect(OperMode_Task == OMT_VICTORY_BRIDGECOLLAPSE);
-  OperMode_Task = OMT_VICTORY_SETUPVICTORYMODE;
+  expect(OperMode == OM_UNK_2);
+  expect(OperMode_Task == OMT_2_UNK_0);
+  OperMode_Task = OMT_2_UNK_1;
   KillAllEnemies();
 }
 
@@ -7318,21 +7496,28 @@ void RunFireworks(const u8 objoff) {
 void RunStarFlagObj(const u8 objoff) {
   EnemyFrenzyBuffer = 0;
 
-  switch (StarFlagTaskControl) {
-  case STARFLAGTASK_GAMETIMERFIREWORKS:
-    GameTimerFireworks(objoff);
-    StarFlagTaskControl = STARFLAGTASK_AWARDGAMETIMERPOINTS;
-    return;
+  const u8 param_1 = StarFlagTaskControl;
 
-  case STARFLAGTASK_AWARDGAMETIMERPOINTS:
+  if (param_1 == STARFLAGTASK_UNK_0) {
+    // StarFlagExit();
+    return;
+  }
+  if (param_1 == STARFLAGTASK_UNK_1) {
+    GameTimerFireworks(objoff);
+    StarFlagTaskControl = STARFLAGTASK_UNK_2;
+    return;
+  }
+  if (param_1 == STARFLAGTASK_UNK_2) {
+    // AwardGameTimerPoints(objoff);
     if (GameTimerDisplay[0] == 0 && GameTimerDisplay[1] == 0 && GameTimerDisplay[2] == 0) {
-      StarFlagTaskControl = STARFLAGTASK_RAISEFLAGSETOFFFWORKS;
+      StarFlagTaskControl = STARFLAGTASK_UNK_3;
     } else {
       AwardTimerCastle();
     }
     return;
-
-  case STARFLAGTASK_RAISEFLAGSETOFFFWORKS:
+  }
+  if (param_1 == STARFLAGTASK_UNK_3) {
+    // RaiseFlagSetoffFWorks(objoff);
     if (Enemy_Y_Position[objoff] >= 0x72) {
       Enemy_Y_Position[objoff] -= 1;
       DrawStarFlag(objoff);
@@ -7342,15 +7527,20 @@ void RunStarFlagObj(const u8 objoff) {
     } else {
       DrawStarFlag(objoff);
       EnemyIntervalTimer[objoff] = 6;
-      StarFlagTaskControl = STARFLAGTASK_DELAYTOAREAEND;
+      StarFlagTaskControl = STARFLAGTASK_UNK_4;
     }
     return;
+  }
+  if (param_1 == STARFLAGTASK_UNK_4) {
+    // DelayToAreaEnd(objoff);
 
-  case STARFLAGTASK_DELAYTOAREAEND:
     DrawStarFlag(objoff);
     if ((EnemyIntervalTimer[objoff] == 0) && (EventMusicBuffer == 0)) {
-      StarFlagTaskControl = STARFLAGTASK_DONE;
+      StarFlagTaskControl = STARFLAGTASK_UNK_5;
     }
+    return;
+  }
+  if (param_1 >= STARFLAGTASK_UNK_5) {
     return;
   }
 }
@@ -8144,15 +8334,15 @@ void HandlePowerUpCollision(const u8 objoff) {
     AreaMusicQueue = MUSIC_AREA_STAR;
   } else if (PlayerStatus == PLAYERSTATUS_SMALL) {
     PlayerStatus = PLAYERSTATUS_BIG;
-    GameEngineSubroutine = GR_PLAYERCHANGESIZE;
-    Player_State = PLAYERSTATE_ONGROUND;
+    GameEngineSubroutine = GR_UNK_9;
+    Player_State = PLAYERSTATE_UNK_0;
     TimerControl = 0xff;
     ScrollAmount = 0;
   } else if (PlayerStatus == PLAYERSTATUS_BIG) {
     PlayerStatus = PLAYERSTATUS_FIREFLOWER;
     GetPlayerColors();
-    GameEngineSubroutine = GR_PLAYERFIREFLOWER;
-    Player_State = PLAYERSTATE_ONGROUND;
+    GameEngineSubroutine = GR_UNK_12;
+    Player_State = PLAYERSTATE_UNK_0;
     TimerControl = 0xff;
     ScrollAmount = 0;
   }
@@ -8174,7 +8364,7 @@ void PlayerEnemyCollision(const u8 objoff) {
   if (EnemyOffscrBitsMasked[objoff] != 0) {
     return;
   }
-  if (GameEngineSubroutine != GR_PLAYERCTRLROUTINE) {
+  if (GameEngineSubroutine != GR_UNK_8) {
     return;
   }
   if (actor_state_is_defeated(objoff)) {
@@ -8439,15 +8629,15 @@ void ForceInjury(void) {
     EventMusicQueue = MUSIC_EVENT_DEATH;
     Player_Y_Speed = -4;
     Player_X_Speed = 0;
-    GameEngineSubroutine = GR_PLAYERDEATH;
+    GameEngineSubroutine = GR_UNK_11;
   } else {
     InjuryTimer = 8;
     Square1SoundQueue = SOUND_SQ1_PIPE_OR_INJURY;
     PlayerStatus = PLAYERSTATUS_SMALL;
     GetPlayerColors();
-    GameEngineSubroutine = GR_PLAYERINJURYBLINK;
+    GameEngineSubroutine = GR_UNK_10;
   }
-  Player_State = PLAYERSTATE_JUMPSWIM;
+  Player_State = PLAYERSTATE_UNK_1;
   TimerControl = 0xff;
   ScrollAmount = 0;
 }
@@ -8709,7 +8899,7 @@ void ProcLPlatCollisions(const u8 param_1, const u8 param_2, const u8 param_3, c
       tmp3 = param_1;
     }
     PlatformCollisionFlag[objoff] = tmp3;
-    Player_State = PLAYERSTATE_ONGROUND;
+    Player_State = PLAYERSTATE_UNK_0;
   } else if ((u8)(BBOX_BOTRIGHT_X(0) - BBOX_TOPLEFT_X(param_2_div4)) <= 7) {
     ImpedePlayerMove(DIR_RIGHT);
   } else if ((u8)(BBOX_BOTRIGHT_X(param_2_div4) - BBOX_TOPLEFT_X(0) - 1) <= 8) {
@@ -8724,7 +8914,7 @@ void ProcLPlatCollisions(const u8 param_1, const u8 param_2, const u8 param_3, c
 void PositionPlayerOnS_Plat(const u8 param_1, const u8 param_2) {
   expect(param_1 == 1 || param_1 == 2);
 
-  if ((GameEngineSubroutine != GR_PLAYERDEATH) && (Enemy_Y_HighPos[param_2] == 1)) {
+  if ((GameEngineSubroutine != GR_UNK_11) && (Enemy_Y_HighPos[param_2] == 1)) {
     u16 ypos = LOAD_16(Enemy_Y_HighPos[param_2],
                        Enemy_Y_Position[param_2] + (param_1 == 1 ? 0x80 : 0));
     ypos -= 32;
@@ -8741,7 +8931,7 @@ void PositionPlayerOnS_Plat(const u8 param_1, const u8 param_2) {
 // SM2MAIN:a896
 // Signature: [X] -> []
 void PositionPlayerOnVPlat(const u8 param_1) {
-  if (GameEngineSubroutine == GR_PLAYERDEATH) {
+  if (GameEngineSubroutine == GR_UNK_11) {
     return;
   }
 
@@ -8791,8 +8981,8 @@ static void HandleAxeMetatile(const u16 mt_x, const u16 mt_y) {
   // Note: Old signature was [r02, r06, r07] -> []
   // Reworked to use metatile coordinates instead of pointer
 
-  OperMode = OM_VICTORY;
-  OperMode_Task = OMT_VICTORY_BRIDGECOLLAPSE;
+  OperMode = OM_UNK_2;
+  OperMode_Task = OMT_2_UNK_0;
 #ifdef SMB2J_MODE
   LoadMarioPhysics();
 #endif
@@ -8821,20 +9011,20 @@ void PlayerBGCollision(void) {
 
   // GameEngineSubroutine < 4 or GameEngineSubroutine == 11
   switch (GameEngineSubroutine) {
-  case GR_ENTRANCE_GAMETIMERSETUP:
-  case GR_VINE_AUTOCLIMB:
-  case GR_SIDEEXITPIPEENTRY:
-  case GR_VERTICALPIPEENTRY:
-  case GR_PLAYERDEATH:
+  case GR_UNK_0:
+  case GR_UNK_1:
+  case GR_UNK_2:
+  case GR_UNK_3:
+  case GR_UNK_11:
     return;
   }
 
   if (!SwimmingFlag) {
-    if ((Player_State == PLAYERSTATE_ONGROUND) || (Player_State == PLAYERSTATE_CLIMBING)) {
-      Player_State = PLAYERSTATE_FALLING;
+    if ((Player_State == PLAYERSTATE_UNK_0) || (Player_State == PLAYERSTATE_UNK_3)) {
+      Player_State = PLAYERSTATE_UNK_2;
     }
   } else {
-    Player_State = PLAYERSTATE_JUMPSWIM;
+    Player_State = PLAYERSTATE_UNK_1;
   }
 
   if (Player_Y_HighPos != 1) {
@@ -8945,7 +9135,7 @@ void PlayerBGCollision(void) {
             Player_Y_MoveForce = 0;
             StompChainCounter = 0;
           }
-          Player_State = PLAYERSTATE_ONGROUND;
+          Player_State = PLAYERSTATE_UNK_0;
         }
       }
     }
@@ -9026,7 +9216,7 @@ static void CheckSideMTiles(const u8 dir, const u8 bVar5, const u8 bVar2, const 
     if (JumpspringAnimCtrl != 0) {
       return;
     }
-  } else if ((Player_State == PLAYERSTATE_ONGROUND) && (PlayerFacingDir == DIR_RIGHT) && (bVar5 == MT_WATERPIPE_B || bVar5 == MT_PIPE_SIDEWAYS_BL)) {
+  } else if ((Player_State == PLAYERSTATE_UNK_0) && (PlayerFacingDir == DIR_RIGHT) && (bVar5 == MT_WATERPIPE_B || bVar5 == MT_PIPE_SIDEWAYS_BL)) {
     if (Player_SprAttrib == 0) {
       Square1SoundQueue = SOUND_SQ1_PIPE_OR_INJURY;
     }
@@ -9037,13 +9227,13 @@ static void CheckSideMTiles(const u8 dir, const u8 bVar5, const u8 bVar2, const 
 
     // 7 != 8, so this seems redundant. But it's in the assembly.
     // We'll keep it in in case it's semantically meaningful in later refactor efforts.
-    if (GameEngineSubroutine == GR_PLAYERENTRANCE) {
+    if (GameEngineSubroutine == GR_UNK_7) {
       return;
     }
-    if (GameEngineSubroutine != GR_PLAYERCTRLROUTINE) {
+    if (GameEngineSubroutine != GR_UNK_8) {
       return;
     }
-    GameEngineSubroutine = GR_SIDEEXITPIPEENTRY;
+    GameEngineSubroutine = GR_UNK_2;
     return;
   }
 
@@ -9061,10 +9251,10 @@ void HandleClimbing(const u8 param_1, const u8 param_2, const u16 mt_x) {
   }
 
   if ((param_1 == MT_FLAGPOLE_T) || (param_1 == MT_FLAGPOLE_M)) {
-    if (GameEngineSubroutine != GR_PLAYERENDLEVEL) {
+    if (GameEngineSubroutine != GR_UNK_5) {
       PlayerFacingDir = DIR_RIGHT;
       ScrollLock += 1;
-      if (GameEngineSubroutine != GR_FLAGPOLESLIDE) {
+      if (GameEngineSubroutine != GR_UNK_4) {
         KillEnemies(0x33);
         EventMusicQueue = MUSIC_EVENT_STOP;
         FlagpoleSoundQueue = SOUND_SQ1_FLAGPOLE;
@@ -9091,12 +9281,12 @@ void HandleClimbing(const u8 param_1, const u8 param_2, const u16 mt_x) {
         }
 #endif
       }
-      GameEngineSubroutine = GR_FLAGPOLESLIDE;
+      GameEngineSubroutine = GR_UNK_4;
     }
   } else if ((param_1 == MT_SPECIAL_VINE) && (Player_Y_Position < 0x20)) {
-    GameEngineSubroutine = GR_VINE_AUTOCLIMB;
+    GameEngineSubroutine = GR_UNK_1;
   }
-  Player_State = PLAYERSTATE_CLIMBING;
+  Player_State = PLAYERSTATE_UNK_3;
   Player_X_Speed = 0;
   Player_X_MoveForce = 0;
   if ((u8)(Player_X_Position - ScreenLeft_X_Pos) < 0x10) {
@@ -9185,7 +9375,7 @@ void HandlePipeEntry(const u8 param_1, const u8 param_2) {
 
   if ((((Up_Down_Buttons & BUTTON_D) != 0) && (param_1 == 0x11)) && (param_2 == 0x10)) {
     ChangeAreaTimer = 0x30;
-    GameEngineSubroutine = GR_VERTICALPIPEENTRY;
+    GameEngineSubroutine = GR_UNK_3;
     Square1SoundQueue = SOUND_SQ1_PIPE_OR_INJURY;
     Player_SprAttrib = 0x20;
     if (WarpZoneControl != 0) {
@@ -11118,7 +11308,7 @@ void DrawBrickChunks(const u8 objoff) {
   // NES note: There's leftover code to draw a ball instead of a brick chunk.
   // This doesn't seem to get used in practice.
 
-  const bool draw_brick_chunk = GameEngineSubroutine != GR_PLAYERENDLEVEL;
+  const bool draw_brick_chunk = GameEngineSubroutine != GR_UNK_5;
 
   const u8 tilepalette = draw_brick_chunk ? 3 : 2;
   const u8 tileidx     = draw_brick_chunk ? STILE_BRICK_CHUNK : STILE_BALL;
@@ -11406,7 +11596,7 @@ static inline void player_gfx_processing(const u8 frame) {
     bool row2_symmetric = false;
     bool row3_symmetric = false;
 
-    if (GameEngineSubroutine == GR_PLAYERDEATH) {
+    if (GameEngineSubroutine == GR_UNK_11) {
       row2_symmetric = true;
       row3_symmetric = true;
     } else if (frame == PLAYERFRAME_BIG_CROUCH || frame == PLAYERFRAME_SMALL_STAND || frame == PLAYERFRAME_GROW) {
@@ -11528,7 +11718,7 @@ static inline u8 process_player_action(void) {
 
   const bool big = PlayerSize == 0;
 
-  if (Player_State == PLAYERSTATE_CLIMBING) {
+  if (Player_State == PLAYERSTATE_UNK_3) {
     if (Player_Y_Speed != 0) {
       play_frames = 2;
     } else {
@@ -11536,10 +11726,10 @@ static inline u8 process_player_action(void) {
     }
     idx = big ? PLAYERFRAME_BIG_CLIMB_0
               : PLAYERFRAME_SMALL_CLIMB_0;
-  } else if (Player_State == PLAYERSTATE_FALLING) {
+  } else if (Player_State == PLAYERSTATE_UNK_2) {
     idx = big ? PLAYERFRAME_BIG_WALK_0
               : PLAYERFRAME_SMALL_WALK_0;
-  } else if (Player_State == PLAYERSTATE_JUMPSWIM) {
+  } else if (Player_State == PLAYERSTATE_UNK_1) {
     if (SwimmingFlag) {
       if (JumpSwimTimer != 0 || PlayerAnimCtrl != 0 || (A_B_Buttons & BUTTON_A)) {
         play_frames = 3;
@@ -11569,10 +11759,10 @@ static inline u8 process_player_action(void) {
           // GameEngineSubroutine < 9
           // TODO: is this the right way to express "< 9"?
           switch (GameEngineSubroutine) {
-            case GR_PLAYERCHANGESIZE:
-            case GR_PLAYERINJURYBLINK:
-            case GR_PLAYERDEATH:
-            case GR_PLAYERFIREFLOWER:
+            case GR_UNK_9:
+            case GR_UNK_10:
+            case GR_UNK_11:
+            case GR_UNK_12:
               break;
 
             default:
@@ -11625,7 +11815,7 @@ void PlayerGfxHandler(void) {
     return;
   }
 
-  if (GameEngineSubroutine == GR_PLAYERDEATH) {
+  if (GameEngineSubroutine == GR_UNK_11) {
     player_gfx_processing(PLAYERFRAME_DEAD);
     return;
   }
@@ -11641,7 +11831,7 @@ void PlayerGfxHandler(void) {
     return;
   }
 
-  if (Player_State == PLAYERSTATE_ONGROUND) {
+  if (Player_State == PLAYERSTATE_UNK_0) {
     return;
   }
 

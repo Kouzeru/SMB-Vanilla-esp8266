@@ -302,7 +302,7 @@ void NoiseSfxHandler(void) {
 // SM2MAIN:d2a0
 // Signature: [] -> []
 void SoundEngine(void) {
-  if (OperMode == OM_TITLESCREEN) {
+  if (OperMode == OM_UNK_0) {
     apu_snd_chn(0);
     return;
   }
