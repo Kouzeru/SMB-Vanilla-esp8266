@@ -61,9 +61,7 @@ Concretely, the following must be entirely written by humans and/or determinstic
 - Issues
 - Pull requests
 
-Where "deterministic tooling" includes linters (clang-tidy), decompilers (Ghidra), rewriters (Coccinelle), scripts (Python and bash scripts), and so on.
-
-Generative AI is currently permitted for tasks that do not produce committed code or documentation. Example uses include searching the code or generating throwaway scripts. You must make a reasonable effort to prove correctness. This will be held to a high standard. This is in the interest of keeping processes open. Share the process, including chat logs if applicable.
+Where "deterministic tooling" includes linters (clang-tidy), decompilers (Ghidra), rewriters (Coccinelle), scripts (Python and bash scripts), and so on. AI cannot write scripts for these tools.
 
 Unsolicited bot contributions will be rejected.
 
