@@ -8277,7 +8277,7 @@ void PlayerHammerCollision(const u8 objoff) {
   }
 
 #ifdef SMB2J_MODE
-  if (SprObject_OffscrBits[0] != 0) {
+  if (Player_OffscreenBits != 0) {
     return;
   }
 #endif
@@ -8952,10 +8952,10 @@ void PositionPlayerOnVPlat(const u8 param_1) {
 // Signature: [] -> [C]
 bool CheckPlayerVertical(void) {
 #ifdef SMB1_MODE
-  return SprObject_OffscrBits[0] >= 0xf0 || (Player_Y_HighPos == 1 && Player_Y_Position >= 0xd0);
+  return Player_OffscreenBits >= 0xf0 || (Player_Y_HighPos == 1 && Player_Y_Position >= 0xd0);
 #endif
 #ifdef SMB2J_MODE
-  return (SprObject_OffscrBits[0] & 0xf0) != 0;
+  return (Player_OffscreenBits & 0xf0) != 0;
 #endif
 }
 
@@ -11636,28 +11636,28 @@ static inline void player_gfx_processing(const u8 frame) {
 
   const u8 sprite_offset = Player_SprDataOffset;
 
-  if (SprObject_OffscrBits[0] & 0x10) {
+  if (Player_OffscreenBits & 0x10) {
     // Inlined: DumpTwoSpr
     const u8 off = SPRITE_calculate_wrap(sprite_offset, 6);
     SPRITE_Y(off, 0) = SPRITE_Y_OFFSCREEN;
     SPRITE_Y(off, 1) = SPRITE_Y_OFFSCREEN;
   }
 
-  if (SprObject_OffscrBits[0] & 0x20) {
+  if (Player_OffscreenBits & 0x20) {
     // Inlined: DumpTwoSpr
     const u8 off = SPRITE_calculate_wrap(sprite_offset, 4);
     SPRITE_Y(off, 0) = SPRITE_Y_OFFSCREEN;
     SPRITE_Y(off, 1) = SPRITE_Y_OFFSCREEN;
   }
 
-  if (SprObject_OffscrBits[0] & 0x40) {
+  if (Player_OffscreenBits & 0x40) {
     // Inlined: DumpTwoSpr
     const u8 off = SPRITE_calculate_wrap(sprite_offset, 2);
     SPRITE_Y(off, 0) = SPRITE_Y_OFFSCREEN;
     SPRITE_Y(off, 1) = SPRITE_Y_OFFSCREEN;
   }
 
-  if (SprObject_OffscrBits[0] & 0x80) {
+  if (Player_OffscreenBits & 0x80) {
     // Inlined: DumpTwoSpr
     SPRITE_Y(sprite_offset, 0) = SPRITE_Y_OFFSCREEN;
     SPRITE_Y(sprite_offset, 1) = SPRITE_Y_OFFSCREEN;
@@ -11936,7 +11936,10 @@ void GetObjRelativePosition(const u8 param_1, const u8 param_2) {
 // SM2MAIN:be65
 // Signature: [] -> []
 void GetPlayerOffscreenBits(void) {
-  GetOffScreenBitsSet(0, 0);
+  // Inlined: GetOffScreenBitsSet
+  const u8 xbits = GetXOffscreenBits(0);
+  const u8 ybits = GetYOffscreenBits(0);
+  Player_OffscreenBits = (ybits << 4) | (xbits >> 4);
 }
 
 
@@ -11945,7 +11948,10 @@ void GetPlayerOffscreenBits(void) {
 // Signature: [X] -> []
 void GetFireballOffscreenBits(const u8 param_1) {
   // Inlined: GetProperObjOffset
-  GetOffScreenBitsSet(param_1 + 7, 2);
+  // Inlined: GetOffScreenBitsSet
+  const u8 xbits = GetXOffscreenBits(param_1 + 7);
+  const u8 ybits = GetYOffscreenBits(param_1 + 7);
+  FBall_OffscreenBits = (ybits << 4) | (xbits >> 4);
 }
 
 
@@ -11954,7 +11960,10 @@ void GetFireballOffscreenBits(const u8 param_1) {
 // Signature: [X] -> []
 void GetBubbleOffscreenBits(const u8 objoff) {
   // Inlined: GetProperObjOffset
-  GetOffScreenBitsSet(objoff + 22, 3);
+  // Inlined: GetOffScreenBitsSet
+  const u8 xbits = GetXOffscreenBits(objoff + 22);
+  const u8 ybits = GetYOffscreenBits(objoff + 22);
+  Bubble_OffscreenBits = (ybits << 4) | (xbits >> 4);
 }
 
 
@@ -11963,7 +11972,10 @@ void GetBubbleOffscreenBits(const u8 objoff) {
 // Signature: [X] -> []
 void GetMiscOffscreenBits(const u8 param_1) {
   // Inlined: GetProperObjOffset
-  GetOffScreenBitsSet(param_1 + 13, 6);
+  // Inlined: GetOffScreenBitsSet
+  const u8 xbits = GetXOffscreenBits(param_1 + 13);
+  const u8 ybits = GetYOffscreenBits(param_1 + 13);
+  Misc_OffscreenBits = (ybits << 4) | (xbits >> 4);
 }
 
 
@@ -11972,7 +11984,10 @@ void GetMiscOffscreenBits(const u8 param_1) {
 // Signature: [X] -> []
 void GetEnemyOffscreenBits(const u8 param_1) {
   // NES note: GetEnemyOffscreenBits sets Y=1. Used by InitPlatformFall.
-  GetOffScreenBitsSet(param_1 + 1, 1);
+  // Inlined: GetOffScreenBitsSet
+  const u8 xbits = GetXOffscreenBits(param_1 + 1);
+  const u8 ybits = GetYOffscreenBits(param_1 + 1);
+  Enemy_OffscreenBits = (ybits << 4) | (xbits >> 4);
 }
 
 
@@ -11980,19 +11995,10 @@ void GetEnemyOffscreenBits(const u8 param_1) {
 // SM2MAIN:be9b
 // Signature: [X] -> []
 void GetBlockOffscreenBits(const u8 param_1) {
-  GetOffScreenBitsSet(param_1 + 9, 4);
-}
-
-
-// SMB:f1c0
-// SM2MAIN:bea5
-// Signature: [X, Y] -> []
-void GetOffScreenBitsSet(const u8 param_1, const u8 param_2) {
-  // Inlined: RunOffscrBitsSubs (only used once in the original games)
-  const u8 xbits = GetXOffscreenBits(param_1);
-  const u8 ybits = GetYOffscreenBits(param_1);
-
-  SprObject_OffscrBits[param_2] = (ybits << 4) | (xbits >> 4);
+  // Inlined: GetOffScreenBitsSet
+  const u8 xbits = GetXOffscreenBits(param_1 + 9);
+  const u8 ybits = GetYOffscreenBits(param_1 + 9);
+  Block_OffscreenBits = (ybits << 4) | (xbits >> 4);
 }
 
 

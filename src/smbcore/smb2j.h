@@ -1048,9 +1048,6 @@ void smb2j_GetEnemyOffscreenBits(u8 param_1);
 void smb2j_GetBlockOffscreenBits(u8 param_1);
 #define GetBlockOffscreenBits smb2j_GetBlockOffscreenBits
 
-void smb2j_GetOffScreenBitsSet(u8 param_1,u8 param_2);
-#define GetOffScreenBitsSet smb2j_GetOffScreenBitsSet
-
 u8 smb2j_GetXOffscreenBits(u8 param_1);
 #define GetXOffscreenBits smb2j_GetXOffscreenBits
 

@@ -1049,9 +1049,6 @@ void smb1_GetEnemyOffscreenBits(u8 param_1);
 void smb1_GetBlockOffscreenBits(u8 param_1);
 #define GetBlockOffscreenBits smb1_GetBlockOffscreenBits
 
-void smb1_GetOffScreenBitsSet(u8 param_1,u8 param_2);
-#define GetOffScreenBitsSet smb1_GetOffScreenBitsSet
-
 u8 smb1_GetXOffscreenBits(u8 param_1);
 #define GetXOffscreenBits smb1_GetXOffscreenBits
 

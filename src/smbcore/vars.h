@@ -225,14 +225,13 @@
 #define Player_SprAttrib                 SprObject_Attrib[0]
 #define Enemy_SprAttrib                  (SprObject_Attrib + 1)
 
-#define SprObject_OffscrBits             RAMARRAY(0x03D0, 7)
-#define Player_OffscreenBits             SprObject_OffscrBits[0]
-#define Enemy_OffscreenBits              SprObject_OffscrBits[1]
-#define FBall_OffscreenBits              SprObject_OffscrBits[2]
-#define Bubble_OffscreenBits             SprObject_OffscrBits[3]
-#define Block_OffscreenBits              SprObject_OffscrBits[4]
+#define Player_OffscreenBits             RAM(0x03D0)
+#define Enemy_OffscreenBits              RAM(0x03D1)
+#define FBall_OffscreenBits              RAM(0x03D2)
+#define Bubble_OffscreenBits             RAM(0x03D3)
+#define Block_OffscreenBits              RAM(0x03D4)
 //
-#define Misc_OffscreenBits               SprObject_OffscrBits[6]
+#define Misc_OffscreenBits               RAM(0x03D6)
 
 #define EnemyOffscrBitsMasked            RAMARRAY(0x03D8, 6)
 #define Block_Orig_YPos                  RAMARRAY(0x03E4, 2)
