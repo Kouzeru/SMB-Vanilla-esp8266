@@ -11981,39 +11981,40 @@ void GetBlockOffscreenBits(const u8 param_1) {
 }
 
 
-static inline u8 xoff_f(const i16 sx, const i16 x) {
-  i16 z = sx - x;
-
-  if (z < 0) {
-    return 0x7;
-  } else if (z >= 56) {
-    return 0xf;
-  } else {
-    // 8 to e
-    return z/8 + 8;
-  }
-}
-
 // SMB:f1f6
 // SM2MAIN:bedb
 // Signature: [X] -> [A]
-u8 GetXOffscreenBits(const u8 param_1) {
-  static const u8 lookup[16] = {
-    0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01, 0x00,
-    0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff,
-  };
+u8 GetXOffscreenBits(const u8 idx) {
+  // This is very very simplified!
 
   const i16 sl = LOAD_i16(ScreenLeft_PageLoc, ScreenLeft_X_Pos);
   const i16 sr = LOAD_i16(ScreenRight_PageLoc, ScreenRight_X_Pos);
-  const i16 x = LOAD_i16(SprObject_PageLoc[param_1], SprObject_X_Position[param_1]);
+  const i16 x = LOAD_i16(SprObject_PageLoc[idx], SprObject_X_Position[idx]);
 
-  u8 i = xoff_f(sr, x);
-  i = (i+8)%16;
-  if (lookup[i] != 0) {
-    return lookup[i];
+  const i16 diff_r = sr - x;
+  if (diff_r < 0) {
+    // Object is to the right of the right screen margin
+    // Completely off screen
+    return 0xff;
+  } else if (diff_r < 56) {
+    // A 56-pixel wide bounding box is partially in the right screen margin
+    const u8 i = diff_r/8;
+    return 0xff >> (i+1);
   }
-  i = xoff_f(sl, x);
-  return lookup[i];
+
+  const i16 diff_l = sl - x;
+  if (diff_l < 0) {
+    // Object is to the right of the left screen margin
+    // Completely in screen
+    return 0x00;
+  } else if (diff_l < 56) {
+    // A 56-pixel wide bounding box is partially in the left screen margin
+    const u8 i = diff_l/8;
+    return 0xff << (7-i);
+  }
+
+  // Completely off screen
+  return 0xff;
 }
 
 static u8 yoff_f(const u8 param_1, bool a) {
