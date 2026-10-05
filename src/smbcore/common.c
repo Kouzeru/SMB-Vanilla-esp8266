@@ -11981,36 +11981,17 @@ void GetBlockOffscreenBits(const u8 param_1) {
 }
 
 
-static u8 xoff_f(const u8 param_1, u8 is_right) {
-  // a seriously inlined/simplified version of the original.
-  // part of GetXOffscreenBits
+static inline u8 xoff_f(const i16 sx, const i16 x) {
+  i16 z = sx - x;
 
-  const u8 pageloc = is_right == 0 ? ScreenLeft_PageLoc : ScreenRight_PageLoc;
-  const u8 xpos = is_right == 0 ? ScreenLeft_X_Pos : ScreenRight_X_Pos;
-
-  const int j = pageloc - SprObject_PageLoc[param_1];
-  const int ik = xpos - SprObject_X_Position[param_1];
-
-  int z = ik + j*256;
-
-  // wraparound as is_right signed 16-bit number to achieve the same glitchy behavior
-  if (z >= 0x8000) { z -= 0x10000; }
-  if (z < -0x8000) { z += 0x10000; }
-
-  u8 v;
   if (z < 0) {
-    v = 0x7;
-  } else if (z < 56) {
+    return 0x7;
+  } else if (z >= 56) {
+    return 0xf;
+  } else {
     // 8 to e
-    v = z/8 + 8;
-  } else  {
-    v = 0xf;
+    return z/8 + 8;
   }
-
-  if (is_right) {
-    v = (v+8)%16;
-  }
-  return v;
 }
 
 // SMB:f1f6
@@ -12022,13 +12003,16 @@ u8 GetXOffscreenBits(const u8 param_1) {
     0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff,
   };
 
-  u8 i = xoff_f(param_1, 1);
-  expect(i < 16);
+  const i16 sl = LOAD_i16(ScreenLeft_PageLoc, ScreenLeft_X_Pos);
+  const i16 sr = LOAD_i16(ScreenRight_PageLoc, ScreenRight_X_Pos);
+  const i16 x = LOAD_i16(SprObject_PageLoc[param_1], SprObject_X_Position[param_1]);
+
+  u8 i = xoff_f(sr, x);
+  i = (i+8)%16;
   if (lookup[i] != 0) {
     return lookup[i];
   }
-  i = xoff_f(param_1, 0);
-  expect(i < 16);
+  i = xoff_f(sl, x);
   return lookup[i];
 }
 
@@ -12084,12 +12068,12 @@ u8 GetYOffscreenBits(const u8 param_1) {
 #endif
   };
 
-  u8 i = yoff_f(param_1, 1);
+  u8 i = yoff_f(param_1, true);
   expect(i < 9);
   if (lookup[i] != 0) {
     return lookup[i];
   }
-  i = yoff_f(param_1, 0);
+  i = yoff_f(param_1, false);
   expect(i < 9);
   return lookup[i];
 }
