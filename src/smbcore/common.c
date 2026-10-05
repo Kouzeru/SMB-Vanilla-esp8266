@@ -4523,7 +4523,8 @@ i8 MoveObjectHorizontally(const u8 param_1) {
 // Signature: [] -> []
 void MovePlayerVertically(void) {
   if ((TimerControl != 0) || (JumpspringAnimCtrl == 0)) {
-    ImposeGravitySprObj(4, 0, VerticalForce);
+    // Inlined: ImposeGravitySprObj
+    ImposeGravity(0, 0, VerticalForce, 0, 4);
   }
 }
 
@@ -4535,19 +4536,15 @@ void MoveD_EnemyVertically(const u8 objoff) {
   if (actor_state_get_raw(objoff) == ACTOR_STATE_SPINY_EGG) {
     expect_weak(actor_is(objoff, A_SPINY));
 
-    SetXMoveAmt(3, objoff, 0x20);
+    // Inlined: SetXMoveAmt
+    // Inlined: ImposeGravitySprObj
+    ImposeGravity(0, objoff + 1, 0x20, 0, 3);
     return;
   }
 
-  SetXMoveAmt(3, objoff, 0x3d);
-}
-
-
-// SMB:bf6b
-// SM2MAIN:8b3c
-// Signature: [X] -> []
-void MoveFallingPlatform(const u8 param_1) {
-  SetXMoveAmt(3, param_1, 0x20);
+  // Inlined: SetXMoveAmt
+  // Inlined: ImposeGravitySprObj
+  ImposeGravity(0, objoff + 1, 0x3d, 0, 3);
 }
 
 
@@ -4567,19 +4564,13 @@ void MoveRedPTroopaUp(const u8 objoff) {
 }
 
 
-// SMB:bf88
-// SM2MAIN:8b59
-// Signature: [X] -> []
-void MoveDropPlatform(const u8 objoff) {
-  SetXMoveAmt(2, objoff, 0x7f);
-}
-
-
 // SMB:bf8c
 // SM2MAIN:8b5d
 // Signature: [X] -> []
 void MoveEnemySlowVert(const u8 objoff) {
-  SetXMoveAmt(2, objoff, 0xf);
+  // Inlined: SetXMoveAmt
+  // Inlined: ImposeGravitySprObj
+  ImposeGravity(0, objoff + 1, 0xf, 0, 2);
 }
 
 
@@ -4587,15 +4578,9 @@ void MoveEnemySlowVert(const u8 objoff) {
 // SM2MAIN:8b63
 // Signature: [X] -> []
 void MoveJ_EnemyVertically(const u8 objoff) {
-  SetXMoveAmt(3, objoff, 0x1c);
-}
-
-
-// SMB:bf96
-// SM2MAIN:8b67
-// Signature: [A, X, Y] -> []
-void SetXMoveAmt(const i8 param_1, const u8 param_2, const u8 param_3) {
-  ImposeGravitySprObj(param_1, param_2 + 1, param_3);
+  // Inlined: SetXMoveAmt
+  // Inlined: ImposeGravitySprObj
+  ImposeGravity(0, objoff + 1, 0x1c, 0, 3);
 }
 
 
@@ -4603,19 +4588,7 @@ void SetXMoveAmt(const i8 param_1, const u8 param_2, const u8 param_3) {
 // SM2MAIN:8b75
 // Signature: [X] -> []
 void ImposeGravityBlock(const u8 param_1) {
-  const u8 in_r01 = 0;
-
-  ImposeGravity(0, param_1, 0x50, in_r01, 8);
-}
-
-
-// SMB:bfad
-// SM2MAIN:8b7e
-// Signature: [A, X, r00] -> []
-void ImposeGravitySprObj(const i8 param_1, const u8 param_2, const u8 param_3) {
-  const u8 in_r01 = 0;
-
-  ImposeGravity(0, param_2, param_3, in_r01, param_1);
+  ImposeGravity(0, param_1, 0x50, 0, 8);
 }
 
 
@@ -4640,43 +4613,37 @@ void MovePlatformUp(const u8 objoff) {
 // SMB:bfd7
 // SM2MAIN:8ba8
 // Signature: [A, X, r00, r01, r02] -> []
-void ImposeGravity(const u8 param_1, const u8 param_2, const u8 param_3, const u8 param_4, const i8 param_5) {
-  ADD_SIGNED_24_16(SprObject_Y_HighPos[param_2], SprObject_Y_Position[param_2], SprObject_YMF_Dummy[param_2],
-                   SprObject_Y_Speed[param_2], SprObject_Y_MoveForce[param_2]);
+void ImposeGravity(const bool do_subtract, const u8 idx, const u8 add_by, const u8 sub_by, const i8 q) {
+  // expect(add_by >= q);
+  expect(q >= 0);
 
-  ADD_UNSIGNED_16_8(SprObject_Y_Speed[param_2], SprObject_Y_MoveForce[param_2],
-                    param_3);
+  ADD_SIGNED_24_16(SprObject_Y_HighPos[idx], SprObject_Y_Position[idx], SprObject_YMF_Dummy[idx],
+                   SprObject_Y_Speed[idx], SprObject_Y_MoveForce[idx]);
 
-  const i8 q = param_5;
-  const i8 h = SprObject_Y_Speed[param_2];
-  const i8 r = SprObject_Y_MoveForce[param_2];
+  i16 y_speed_frac = LOAD_i16(SprObject_Y_Speed[idx], SprObject_Y_MoveForce[idx]);
 
-  // The intention is probably to compare `hr - q0 >= 0x80`,
-  // but there may be edge cases
+  y_speed_frac += add_by;
 
-  if (h - q >= 0) {
-    if (r < 0) {
+  if ((i8)((y_speed_frac >> 8) - q) >= 0) {
+    if ((y_speed_frac & 0xff) >= 128) {
       // Clamp the speed to a maximum value
-      SprObject_Y_Speed[param_2] = q;
-      SprObject_Y_MoveForce[param_2] = 0;
+      y_speed_frac = q << 8;
     }
   }
 
-  if (param_1 != 0) {
-    SUB_UNSIGNED_16_8(SprObject_Y_Speed[param_2], SprObject_Y_MoveForce[param_2],
-                      param_4);
+  if (do_subtract) {
+    y_speed_frac -= sub_by;
 
-    const i8 s = SprObject_Y_Speed[param_2];
-    const i8 t = SprObject_Y_MoveForce[param_2];
-
-    if (s + q < 0) {
-      if (t >= 0) {
+    if ((i8)((y_speed_frac >> 8) + q) < 0) {
+      if ((y_speed_frac & 0xff) < 128) {
         // Clamp the speed to a minimum value
-        SprObject_Y_Speed[param_2] = -q;
-        SprObject_Y_MoveForce[param_2] = -1;
+        y_speed_frac = -(q << 8) + 255;
       }
     }
   }
+
+  STORE_16(SprObject_Y_Speed[idx], SprObject_Y_MoveForce[idx],
+           y_speed_frac);
 }
 
 
@@ -7050,7 +7017,9 @@ void MoveFlyingCheepCheep(const u8 objoff) {
   };
 
   MoveEnemyHorizontally(objoff);
-  SetXMoveAmt(5, objoff, 0xd);
+  // Inlined: SetXMoveAmt
+  // Inlined: ImposeGravitySprObj
+  ImposeGravity(0, objoff + 1, 0xd, 0, 5);
   u8 bVar3 = (Enemy_Y_MoveForce[objoff] >> 4) & 0xf;
 
   i8 bVar1 = Enemy_Y_Position[objoff] - ypos_sub_lookup[bVar3];
@@ -7901,9 +7870,14 @@ void StopPlatforms(const u8 param_1, const u8 param_2) {
 // SM2MAIN:a1f5
 // Signature: [X, Y] -> []
 void PlatformFall(const u8 objoff, const u8 param_2) {
-  const u8 bStack0000 = param_2;
-  MoveFallingPlatform(objoff);
-  MoveFallingPlatform(bStack0000);
+  // Inlined: MoveFallingPlatform
+  // Inlined: SetXMoveAmt
+  // Inlined: ImposeGravitySprObj
+  ImposeGravity(0, objoff + 1, 0x20, 0, 3);
+  // Inlined: SetXMoveAmt
+  // Inlined: ImposeGravitySprObj
+  ImposeGravity(0, param_2 + 1, 0x20, 0, 3);
+
   if (PlatformCollisionFlag[objoff] < 0x80) {
     PositionPlayerOnVPlat(PlatformCollisionFlag[objoff]);
   }
@@ -7975,7 +7949,10 @@ void DropPlatform(const u8 objoff) {
     return;
   }
 
-  MoveDropPlatform(objoff);
+  // Inlined: MoveDropPlatform
+  // Inlined: SetXMoveAmt
+  // Inlined: ImposeGravitySprObj
+  ImposeGravity(0, objoff + 1, 0x7f, 0, 2);
   PositionPlayerOnVPlat(objoff);
 }
 

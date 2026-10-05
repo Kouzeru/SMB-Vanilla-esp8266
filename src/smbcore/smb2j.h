@@ -415,17 +415,11 @@ void smb2j_MovePlayerVertically(void);
 void smb2j_MoveD_EnemyVertically(u8 param_1);
 #define MoveD_EnemyVertically smb2j_MoveD_EnemyVertically
 
-void smb2j_MoveFallingPlatform(u8 param_1);
-#define MoveFallingPlatform smb2j_MoveFallingPlatform
-
 void smb2j_MoveRedPTroopaDown(u8 param_1);
 #define MoveRedPTroopaDown smb2j_MoveRedPTroopaDown
 
 void smb2j_MoveRedPTroopaUp(u8 param_1);
 #define MoveRedPTroopaUp smb2j_MoveRedPTroopaUp
-
-void smb2j_MoveDropPlatform(u8 param_1);
-#define MoveDropPlatform smb2j_MoveDropPlatform
 
 void smb2j_MoveEnemySlowVert(u8 param_1);
 #define MoveEnemySlowVert smb2j_MoveEnemySlowVert
@@ -433,14 +427,8 @@ void smb2j_MoveEnemySlowVert(u8 param_1);
 void smb2j_MoveJ_EnemyVertically(u8 param_1);
 #define MoveJ_EnemyVertically smb2j_MoveJ_EnemyVertically
 
-void smb2j_SetXMoveAmt(i8 param_1,u8 param_2,u8 param_3);
-#define SetXMoveAmt smb2j_SetXMoveAmt
-
 void smb2j_ImposeGravityBlock(u8 param_1);
 #define ImposeGravityBlock smb2j_ImposeGravityBlock
-
-void smb2j_ImposeGravitySprObj(i8 param_1,u8 param_2,u8 param_3);
-#define ImposeGravitySprObj smb2j_ImposeGravitySprObj
 
 void smb2j_MovePlatformDown(u8 param_1);
 #define MovePlatformDown smb2j_MovePlatformDown
@@ -448,7 +436,7 @@ void smb2j_MovePlatformDown(u8 param_1);
 void smb2j_MovePlatformUp(u8 param_1);
 #define MovePlatformUp smb2j_MovePlatformUp
 
-void smb2j_ImposeGravity(u8 param_1,u8 param_2,u8 param_3,u8 param_4,i8 param_5);
+void smb2j_ImposeGravity(bool param_1,u8 param_2,u8 param_3,u8 param_4,i8 param_5);
 #define ImposeGravity smb2j_ImposeGravity
 
 void smb2j_EnemiesAndLoopsCore(u8 param_1);
