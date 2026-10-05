@@ -431,9 +431,6 @@ void smb1_MoveEnemySlowVert(u8 param_1);
 void smb1_MoveJ_EnemyVertically(u8 param_1);
 #define MoveJ_EnemyVertically smb1_MoveJ_EnemyVertically
 
-void smb1_ImposeGravityBlock(u8 param_1);
-#define ImposeGravityBlock smb1_ImposeGravityBlock
-
 void smb1_MovePlatformDown(u8 param_1);
 #define MovePlatformDown smb1_MovePlatformDown
 

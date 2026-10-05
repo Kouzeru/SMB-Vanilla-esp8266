@@ -4407,17 +4407,20 @@ void SpawnBrickChunks(const u8 param_1) {
 // SM2MAIN:8a41
 // Signature: [X] -> []
 void BlockObjectsCore(const u8 objoff) {
-  u8 bStack0000 = Block_State[objoff];
-  if (bStack0000 == 0) {
-    Block_State[objoff] = 0;
+  if (Block_State[objoff] == 0) {
     return;
   }
-  bStack0000 &= 0xf;
+
+  const u8 bStack0000 = Block_State[objoff] & 0xf;
+
   if (bStack0000 == 1) {
-    ImposeGravityBlock(objoff + 9);
+    // Inlined: ImposeGravityBlock
+    ImposeGravity(0, objoff + 9, 0x50, 0, 8);
+
     RelativeBlockPosition(objoff);
     GetBlockOffscreenBits(objoff);
     DrawBlock(objoff);
+
     if ((Block_Y_Position[objoff] & 0xf) > 4) {
       Block_State[objoff] = 1;
     } else {
@@ -4426,13 +4429,20 @@ void BlockObjectsCore(const u8 objoff) {
     }
     return;
   } else {
-    ImposeGravityBlock(objoff + 9);
+    // Inlined: ImposeGravityBlock
+    ImposeGravity(0, objoff + 9, 0x50, 0, 8);
+
     MoveObjectHorizontally(objoff + 9);
-    ImposeGravityBlock(objoff + 9 + 2);
+
+    // Inlined: ImposeGravityBlock
+    ImposeGravity(0, objoff + 9 + 2, 0x50, 0, 8);
+
     MoveObjectHorizontally(objoff + 9 + 2);
+
     RelativeBlockPosition(objoff);
     GetBlockOffscreenBits(objoff);
     DrawBrickChunks(objoff);
+
     if (Block_Y_HighPos[objoff] == 0) {
       Block_State[objoff] = bStack0000;
       return;
@@ -4581,14 +4591,6 @@ void MoveJ_EnemyVertically(const u8 objoff) {
   // Inlined: SetXMoveAmt
   // Inlined: ImposeGravitySprObj
   ImposeGravity(0, objoff + 1, 0x1c, 0, 3);
-}
-
-
-// SMB:bfa4
-// SM2MAIN:8b75
-// Signature: [X] -> []
-void ImposeGravityBlock(const u8 param_1) {
-  ImposeGravity(0, param_1, 0x50, 0, 8);
 }
 
 

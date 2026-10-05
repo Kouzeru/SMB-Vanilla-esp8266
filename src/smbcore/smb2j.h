@@ -427,9 +427,6 @@ void smb2j_MoveEnemySlowVert(u8 param_1);
 void smb2j_MoveJ_EnemyVertically(u8 param_1);
 #define MoveJ_EnemyVertically smb2j_MoveJ_EnemyVertically
 
-void smb2j_ImposeGravityBlock(u8 param_1);
-#define ImposeGravityBlock smb2j_ImposeGravityBlock
-
 void smb2j_MovePlatformDown(u8 param_1);
 #define MovePlatformDown smb2j_MovePlatformDown
 
