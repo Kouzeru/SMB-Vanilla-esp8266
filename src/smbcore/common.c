@@ -11989,32 +11989,54 @@ u8 GetXOffscreenBits(const u8 idx) {
 
   const i16 sl = LOAD_i16(ScreenLeft_PageLoc, ScreenLeft_X_Pos);
   const i16 sr = LOAD_i16(ScreenRight_PageLoc, ScreenRight_X_Pos);
-  const i16 x = LOAD_i16(SprObject_PageLoc[idx], SprObject_X_Position[idx]);
+  const i16 x  = LOAD_i16(SprObject_PageLoc[idx], SprObject_X_Position[idx]);
 
   const i16 diff_r = sr - x;
-  if (diff_r < 0) {
-    // Object is to the right of the right screen margin
-    // Completely off screen
-    return 0xff;
-  } else if (diff_r < 56) {
-    // A 56-pixel wide bounding box is partially in the right screen margin
-    const u8 i = diff_r/8;
-    return 0xff >> (i+1);
-  }
-
   const i16 diff_l = sl - x;
-  if (diff_l < 0) {
-    // Object is to the right of the left screen margin
-    // Completely in screen
-    return 0x00;
-  } else if (diff_l < 56) {
-    // A 56-pixel wide bounding box is partially in the left screen margin
-    const u8 i = diff_l/8;
-    return 0xff << (7-i);
+
+  // i is a relative shift
+  i8 i;
+  i = 0;
+
+  if (diff_r < 0) {
+    i = 8;
+  } else if (diff_r < 64) {
+    i = (64-1 - diff_r) / 8;
+  } else if (diff_l >= 64) {
+    i = -8;
+  } else if (diff_l >= 0) {
+    i = -diff_l/8 - 1;
   }
 
-  // Completely off screen
-  return 0xff;
+
+  // i = 0:
+  // 11111111 00000000 11111111
+  //          --------
+  // Completely in screen
+
+  // i = 1:
+  // 11111111 00000000 11111111
+  //           ------- -
+  // In the right margin of the screen
+
+  // i = 8:
+  // 11111111 00000000 11111111
+  //                   --------
+  // Completely to the right of the screen
+
+  // i = -1:
+  // 11111111 00000000 11111111
+  //        - -------
+  // In the left margin of the screen
+
+  // i = -8:
+  // 11111111 00000000 11111111
+  // --------
+  // Completely to the left of the screen
+
+  const u32 bits = 0xff00ff;
+
+  return (bits >> (-i + 8)) & 0xff;
 }
 
 
@@ -12024,30 +12046,53 @@ u8 GetXOffscreenBits(const u8 idx) {
 u8 GetYOffscreenBits(const u8 idx) {
   // This is very very simplified!
 
-    const i16 y = LOAD_i16(SprObject_Y_HighPos[idx], SprObject_Y_Position[idx]);
+  const i16 y = LOAD_i16(SprObject_Y_HighPos[idx], SprObject_Y_Position[idx]);
 
-    // Note: The original SMB2J would check the top of the screen first, then the bottom.
-    // The outcome is exactly the same.
+  // Note: The original SMB2J would check the top of the screen first, then the bottom.
+  // The outcome is exactly the same.
 
-    // Check the bottom of the screen
+  const i16 diff_b = 256 + 255 - y;
+  const i16 diff_t = 256 - y;
 
-    const i16 diff_b = 256 + 255 - y;
+  i8 i = 0;
 
-    if (diff_b < 0) {
-        return 0x0f;
-    } else if (diff_b < 32) {
-        return 0x0f >> (diff_b/8);
-    }
+  if (diff_b < 0) {
+    i = 32/8;
+  } else if (diff_b < 32) {
+    i = 1 + (32-1 - diff_b)/8;
+  } else if (diff_t >= 32) {
+    i = -32/8;
+  } else if (diff_t >= 0) {
+    i = -diff_t/8;
+  }
 
-    // Check the top of the screen
 
-    const i16 diff_t = 256 - y;
+  // i = 0:
+  // 1111 0000 1111
+  //      ----
+  // Completely in screen
 
-    if (diff_t >= 32) {
-        return 0x0f;
-    } else if (diff_t >= 0) {
-        return (0xf0 >> (diff_t/8)) & 0xf;
-    }
+  // i = 1:
+  // 1111 0000 1111
+  //       --- -
+  // In the bottom margin of the screen
 
-    return 0x00;
+  // i = 4:
+  // 1111 0000 1111
+  //           ----
+  // Completely below the screen
+
+  // i = -1:
+  // 1111 0000 1111
+  //    - ---
+  // In the top margin of the screen
+
+  // i = -4:
+  // 1111 0000 1111
+  // ----
+  // Completely above the screen
+
+  const u16 bits = 0xf0f;
+
+  return (bits >> (-i + 4)) & 0x0f;
 }
