@@ -11981,115 +11981,118 @@ void GetBlockOffscreenBits(const u8 param_1) {
 }
 
 
-static u8 xoff_f(const u8 param_1, u8 is_right) {
-  // a seriously inlined/simplified version of the original.
-  // part of GetXOffscreenBits
-
-  const u8 pageloc = is_right == 0 ? ScreenLeft_PageLoc : ScreenRight_PageLoc;
-  const u8 xpos = is_right == 0 ? ScreenLeft_X_Pos : ScreenRight_X_Pos;
-
-  const int j = pageloc - SprObject_PageLoc[param_1];
-  const int ik = xpos - SprObject_X_Position[param_1];
-
-  int z = ik + j*256;
-
-  // wraparound as is_right signed 16-bit number to achieve the same glitchy behavior
-  if (z >= 0x8000) { z -= 0x10000; }
-  if (z < -0x8000) { z += 0x10000; }
-
-  u8 v;
-  if (z < 0) {
-    v = 0x7;
-  } else if (z < 56) {
-    // 8 to e
-    v = z/8 + 8;
-  } else  {
-    v = 0xf;
-  }
-
-  if (is_right) {
-    v = (v+8)%16;
-  }
-  return v;
-}
-
 // SMB:f1f6
 // SM2MAIN:bedb
 // Signature: [X] -> [A]
-u8 GetXOffscreenBits(const u8 param_1) {
-  static const u8 lookup[16] = {
-    0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01, 0x00,
-    0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff,
-  };
+u8 GetXOffscreenBits(const u8 idx) {
+  // This is very very simplified!
 
-  u8 i = xoff_f(param_1, 1);
-  expect(i < 16);
-  if (lookup[i] != 0) {
-    return lookup[i];
+  const i16 sl = LOAD_i16(ScreenLeft_PageLoc, ScreenLeft_X_Pos);
+  const i16 sr = LOAD_i16(ScreenRight_PageLoc, ScreenRight_X_Pos);
+  const i16 x  = LOAD_i16(SprObject_PageLoc[idx], SprObject_X_Position[idx]);
+
+  const i16 diff_r = sr - x;
+  const i16 diff_l = sl - x;
+
+  // i is a relative shift
+  i8 i;
+  i = 0;
+
+  if (diff_r < 0) {
+    i = 8;
+  } else if (diff_r < 64) {
+    i = (64-1 - diff_r) / 8;
+  } else if (diff_l >= 64) {
+    i = -8;
+  } else if (diff_l >= 0) {
+    i = -diff_l/8 - 1;
   }
-  i = xoff_f(param_1, 0);
-  expect(i < 16);
-  return lookup[i];
+
+
+  // i = 0:
+  // 11111111 00000000 11111111
+  //          --------
+  // Completely in screen
+
+  // i = 1:
+  // 11111111 00000000 11111111
+  //           ------- -
+  // In the right margin of the screen
+
+  // i = 8:
+  // 11111111 00000000 11111111
+  //                   --------
+  // Completely to the right of the screen
+
+  // i = -1:
+  // 11111111 00000000 11111111
+  //        - -------
+  // In the left margin of the screen
+
+  // i = -8:
+  // 11111111 00000000 11111111
+  // --------
+  // Completely to the left of the screen
+
+  const u32 bits = 0xff00ff;
+
+  return (bits >> (-i + 8)) & 0xff;
 }
 
-static u8 yoff_f(const u8 param_1, bool a) {
-  // a seriously inlined/simplified version of the original.
-  // part of GetYOffscreenBits
-
-  bool is_smb2j = false;
-  #ifdef SMB2J_MODE
-  is_smb2j = true;
-  #endif
-
-  const int i = SprObject_Y_HighPos[param_1];
-  const int j = SprObject_Y_Position[param_1];
-
-  int z = 256 - i*256 - j;
-
-  // SMB2J toggles when the offset is applied
-  if (is_smb2j == a) {
-    z += 255;
-  }
-
-  // wraparound as a signed 16-bit number to achieve the same glitchy behavior
-  if (z >= 0x8000) { z -= 0x10000; }
-  if (z < -0x8000) { z += 0x10000; }
-
-  u8 v;
-  if (z < 0) {
-    v = 4;
-  } else if (z < 32) {
-    // 4 to 7
-    v = z/8 + 4;
-  } else {
-    v = 0;
-  }
-
-  if (a) {
-    v = (v+4)%8;
-  }
-  return v;
-}
 
 // SMB:f239
 // SM2MAIN:bf1e
 // Signature: [X] -> [A]
-u8 GetYOffscreenBits(const u8 param_1) {
-  static const u8 lookup[9] = {
-#ifdef SMB1_MODE
-    0x00, 0x08, 0x0c, 0x0e, 0x0f, 0x07, 0x03, 0x01, 0x00,
-#endif
-#ifdef SMB2J_MODE
-    0x0f, 0x07, 0x03, 0x01, 0x00, 0x08, 0x0c, 0x0e, 0x00,
-#endif
-  };
+u8 GetYOffscreenBits(const u8 idx) {
+  // This is very very simplified!
 
-  u8 i = yoff_f(param_1, 1);
-  expect(i < 9);
-  if (lookup[i] != 0) {
-    return lookup[i];
+  const i16 y = LOAD_i16(SprObject_Y_HighPos[idx], SprObject_Y_Position[idx]);
+
+  // Note: The original SMB2J would check the top of the screen first, then the bottom.
+  // The outcome is exactly the same.
+
+  const i16 diff_b = 256 + 255 - y;
+  const i16 diff_t = 256 - y;
+
+  i8 i = 0;
+
+  if (diff_b < 0) {
+    i = 32/8;
+  } else if (diff_b < 32) {
+    i = 1 + (32-1 - diff_b)/8;
+  } else if (diff_t >= 32) {
+    i = -32/8;
+  } else if (diff_t >= 0) {
+    i = -diff_t/8;
   }
-  i = yoff_f(param_1, 0);
-  expect(i < 9);
-  return lookup[i];
+
+
+  // i = 0:
+  // 1111 0000 1111
+  //      ----
+  // Completely in screen
+
+  // i = 1:
+  // 1111 0000 1111
+  //       --- -
+  // In the bottom margin of the screen
+
+  // i = 4:
+  // 1111 0000 1111
+  //           ----
+  // Completely below the screen
+
+  // i = -1:
+  // 1111 0000 1111
+  //    - ---
+  // In the top margin of the screen
+
+  // i = -4:
+  // 1111 0000 1111
+  // ----
+  // Completely above the screen
+
+  const u16 bits = 0xf0f;
+
+  return (bits >> (-i + 4)) & 0x0f;
 }
