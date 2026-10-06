@@ -12017,64 +12017,37 @@ u8 GetXOffscreenBits(const u8 idx) {
   return 0xff;
 }
 
-static u8 yoff_f(const u8 param_1, bool a) {
-  // a seriously inlined/simplified version of the original.
-  // part of GetYOffscreenBits
-
-  bool is_smb2j = false;
-  #ifdef SMB2J_MODE
-  is_smb2j = true;
-  #endif
-
-  const int i = SprObject_Y_HighPos[param_1];
-  const int j = SprObject_Y_Position[param_1];
-
-  int z = 256 - i*256 - j;
-
-  // SMB2J toggles when the offset is applied
-  if (is_smb2j == a) {
-    z += 255;
-  }
-
-  // wraparound as a signed 16-bit number to achieve the same glitchy behavior
-  if (z >= 0x8000) { z -= 0x10000; }
-  if (z < -0x8000) { z += 0x10000; }
-
-  u8 v;
-  if (z < 0) {
-    v = 4;
-  } else if (z < 32) {
-    // 4 to 7
-    v = z/8 + 4;
-  } else {
-    v = 0;
-  }
-
-  if (a) {
-    v = (v+4)%8;
-  }
-  return v;
-}
 
 // SMB:f239
 // SM2MAIN:bf1e
 // Signature: [X] -> [A]
-u8 GetYOffscreenBits(const u8 param_1) {
-  static const u8 lookup[9] = {
-#ifdef SMB1_MODE
-    0x00, 0x08, 0x0c, 0x0e, 0x0f, 0x07, 0x03, 0x01, 0x00,
-#endif
-#ifdef SMB2J_MODE
-    0x0f, 0x07, 0x03, 0x01, 0x00, 0x08, 0x0c, 0x0e, 0x00,
-#endif
-  };
+u8 GetYOffscreenBits(const u8 idx) {
+  // This is very very simplified!
 
-  u8 i = yoff_f(param_1, true);
-  expect(i < 9);
-  if (lookup[i] != 0) {
-    return lookup[i];
-  }
-  i = yoff_f(param_1, false);
-  expect(i < 9);
-  return lookup[i];
+    const i16 y = LOAD_i16(SprObject_Y_HighPos[idx], SprObject_Y_Position[idx]);
+
+    // Note: The original SMB2J would check the top of the screen first, then the bottom.
+    // The outcome is exactly the same.
+
+    // Check the bottom of the screen
+
+    const i16 diff_b = 256 + 255 - y;
+
+    if (diff_b < 0) {
+        return 0x0f;
+    } else if (diff_b < 32) {
+        return 0x0f >> (diff_b/8);
+    }
+
+    // Check the top of the screen
+
+    const i16 diff_t = 256 - y;
+
+    if (diff_t >= 32) {
+        return 0x0f;
+    } else if (diff_t >= 0) {
+        return (0xf0 >> (diff_t/8)) & 0xf;
+    }
+
+    return 0x00;
 }
