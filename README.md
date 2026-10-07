@@ -1,4 +1,12 @@
-# SMB Vanilla
+# SMB Vanilla esp8266
+
+An attempt of porting C decompilation of the NES games "Super Mario Bros" and "Super Mario Bros 2 Japan" (aka Lost Levels) to be playable in esp8266.
+(WORK IN PROGRESS)
+
+---
+Original README:
+
+# SMB Vanilla 
 
 For issues and pull requests, please visit [Codeberg](https://codeberg.org/dannysp/SMB-Vanilla).
 
