@@ -4,7 +4,6 @@
 #include "render_opengl.h"
 #include "render_raster.h"
 #include "timer.h"
-#include <SDL3/SDL_video.h>
 
 #ifdef USE_SDL2
 #  include <SDL.h>

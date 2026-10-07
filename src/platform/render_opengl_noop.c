@@ -16,7 +16,7 @@ size_t SMBgl_size(void) {
 }
 
 // Return false to announce an inability to run OpenGL
-bool SMBgl_init(struct SMBgl *gl) {
+bool SMBgl_init(struct SMBgl *gl, SMBgl_GetProcAddress_f get_proc_address) {
   (void)gl;
   return false;
 }
