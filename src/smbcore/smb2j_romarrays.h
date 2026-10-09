@@ -1,6 +1,6 @@
 #ifndef SMBCORE_SMB2JROMARRAYS_H
 #define SMBCORE_SMB2JROMARRAYS_H
-
+#ifdef SMB2J_MODE
 #define WindFreqEnvData_IntendedLength 24
 #define EndOfCastleMusicEnvData_IntendedLength 4
 #define AreaMusicEnvData_IntendedLength 8
@@ -154,3 +154,4 @@
 
 #endif
 
+#endif

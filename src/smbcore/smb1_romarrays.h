@@ -1,6 +1,6 @@
 #ifndef SMBCORE_SMB1ROMARRAYS_H
 #define SMBCORE_SMB1ROMARRAYS_H
-
+#ifdef SMB1_MODE
 #define EndOfCastleMusicEnvData_IntendedLength 4
 #define AreaMusicEnvData_IntendedLength 8
 #define WaterEventMusicEnvData_IntendedLength 40
@@ -64,3 +64,4 @@
 
 #endif
 
+#endif

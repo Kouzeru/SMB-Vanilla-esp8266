@@ -1,6 +1,6 @@
 #include "ctx.h"
 #include "vars.h"
-
+#ifdef SMB1_MODE
 
 // SMB:8000
 // Signature: [] -> []
@@ -323,3 +323,4 @@ void ChkToStunEnemies(const u8 actor_id, const u8 param_2) {
 
   SetStun2(param_2);
 }
+#endif

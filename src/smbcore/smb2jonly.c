@@ -1,6 +1,6 @@
 #include "ctx.h"
 #include "vars.h"
-
+#ifdef SMB2J_MODE
 
 // read $4032
 static inline u8 FDS_drive_status(void) { return 0; }
@@ -1316,3 +1316,4 @@ void ChangeHalfwayPages(void) {
     HalfwayPageNybbles[i] = AtoDHalfwayPages[i];
   }
 }
+#endif

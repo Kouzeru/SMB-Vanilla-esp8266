@@ -172,15 +172,22 @@ static inline void vram_buffer1_rle(u16 ppu_addr, bool vertical, int count, u8 v
     vram_buffer1_draw(ppu_addr, vertical, count, &arr[0]);
   }
 
-#define _VRAM_DRAW_COUNT(...) (sizeof((const int[]){__VA_ARGS__}) / sizeof(int))
+#define _VRAM_DRAW_COUNT(x) (sizeof(x) / sizeof(int))
 
 // Draws a list of items to VRAM_Buffer1.
 // Assumes no wraparound behavior
+
 #define VRAM1_DRAW(ppu_addr, ...) \
-  vram_buffer1_draw_int(ppu_addr, false, _VRAM_DRAW_COUNT(__VA_ARGS__), (const int[]){ __VA_ARGS__ })
+    ({ \
+        static const int _tmp_vram[] = { __VA_ARGS__ }; \
+        vram_buffer1_draw_int(ppu_addr, false, _VRAM_DRAW_COUNT(_tmp_vram), _tmp_vram); \
+    }) // FIXED (Compatible with C++ / Arduino GCC)
 
 #define VRAM1_DRAW_VERTICAL(ppu_addr, ...) \
-vram_buffer1_draw_int(ppu_addr, true, _VRAM_DRAW_COUNT(__VA_ARGS__), (const int[]){ __VA_ARGS__ })
+    ({ \
+        static const int _tmp_vram[] = { __VA_ARGS__ }; \
+        vram_buffer1_draw_int(ppu_addr, true, _VRAM_DRAW_COUNT(_tmp_vram), _tmp_vram); \
+    }) // FIXED (Compatible with C++ / Arduino GCC)
 
 #else
 

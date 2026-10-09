@@ -85,7 +85,7 @@ static struct_axy LoadControlRegs(void);
 static u8 LoadEnvelopeData(u8 param_1);
 
 
-#define BIT(v, n) (((v) & (1 << n)) != 0)
+#define GET_BIT(v, n) (((v) & (1 << n)) != 0)
 
 // SMB:f38d, SM2MAIN:d35d
 // Signature: [A, X] -> [A, Y, Z]
@@ -217,7 +217,7 @@ void PlayWindSfx(void) {
   // SMB2J set NoiseSoundBuffer here, but we moved that to the caller
   Noise_SfxLenCounter = 0xc0;
 
-  if (BIT(NoiseSoundQueue, 3)) {
+  if (GET_BIT(NoiseSoundQueue, 3)) {
     // This should be unreachable. Nothing in the original game sets this bit.
     // Probably a coding oversight from doing an extra `LSR` instruction to check the bit.
     ContinueWindSfx();
@@ -249,13 +249,13 @@ void NoiseSfxHandler(void) {
 
   if (nsq != 0) {
     NoiseSoundBuffer = nsq;
-    if (BIT(nsq, 0)) { return PlayBrickShatter(); }
-    if (BIT(nsq, 1)) { return PlayBowserFlame(); }
+    if (GET_BIT(nsq, 0)) { return PlayBrickShatter(); }
+    if (GET_BIT(nsq, 1)) { return PlayBowserFlame(); }
   }
   const u8 nsb = NoiseSoundBuffer;
   if (nsb != 0) {
-    if (BIT(nsb, 0)) { return ContinueBrickShatter(); }
-    if (BIT(nsb, 1)) { return ContinueBowserFlame(); }
+    if (GET_BIT(nsb, 0)) { return ContinueBrickShatter(); }
+    if (GET_BIT(nsb, 1)) { return ContinueBowserFlame(); }
   }
 }
 
@@ -267,29 +267,29 @@ void NoiseSfxHandler(void) {
   const u8 nsb = NoiseSoundBuffer;
   const u8 nsq = NoiseSoundQueue;
 
-  if (BIT(nsb, 7)) { return ContinueSkidSfx(); }
-  if (BIT(nsq, 7)) {
+  if (GET_BIT(nsb, 7)) { return ContinueSkidSfx(); }
+  if (GET_BIT(nsq, 7)) {
     NoiseSoundBuffer = nsq;
     return PlaySkidSfx();
   }
 
   // The original game modified (bit-shifted) NoiseSoundQueue to test the bits, but the caller resets the value to 0 anyway, so we ignore changing it here
 
-  if (BIT(nsq, 0)) {
+  if (GET_BIT(nsq, 0)) {
     NoiseSoundBuffer = nsq;
     return PlayBrickShatter();
   }
-  if (BIT(nsb, 0)) { return ContinueBrickShatter(); }
+  if (GET_BIT(nsb, 0)) { return ContinueBrickShatter(); }
 
-  if (BIT(nsq, 1)) {
+  if (GET_BIT(nsq, 1)) {
     NoiseSoundBuffer = nsq;
     return PlayBowserFlame();
   }
-  if (BIT(nsb, 1)) { return ContinueBowserFlame(); }
+  if (GET_BIT(nsb, 1)) { return ContinueBowserFlame(); }
 
   // yes, these are in the opposite order
-  if (BIT(nsb, 2) && BIT(nsq, 2)) { return ContinueWindSfx(); }
-  if (BIT(nsq, 2)) {
+  if (GET_BIT(nsb, 2) && GET_BIT(nsq, 2)) { return ContinueWindSfx(); }
+  if (GET_BIT(nsq, 2)) {
     NoiseSoundBuffer = nsq;
     return PlayWindSfx();
   }
@@ -562,14 +562,14 @@ void Square1SfxHandler(void) {
 
   if (ssq != 0) {
     Square1SoundBuffer = ssq;
-    if (BIT(ssq, 7)) { return PlaySmallJump(); }
-    if (BIT(ssq, 0)) { return PlayBigJump(); }
-    if (BIT(ssq, 1)) { return PlayBump(); }
-    if (BIT(ssq, 2)) { return PlaySwimStomp(); }
-    if (BIT(ssq, 3)) { return PlaySmackEnemy(); }
-    if (BIT(ssq, 4)) { return PlayPipeDownInj(); }
-    if (BIT(ssq, 5)) { return PlayFireballThrow(); }
-    if (BIT(ssq, 6)) { return PlayFlagpoleSlide(); }
+    if (GET_BIT(ssq, 7)) { return PlaySmallJump(); }
+    if (GET_BIT(ssq, 0)) { return PlayBigJump(); }
+    if (GET_BIT(ssq, 1)) { return PlayBump(); }
+    if (GET_BIT(ssq, 2)) { return PlaySwimStomp(); }
+    if (GET_BIT(ssq, 3)) { return PlaySmackEnemy(); }
+    if (GET_BIT(ssq, 4)) { return PlayPipeDownInj(); }
+    if (GET_BIT(ssq, 5)) { return PlayFireballThrow(); }
+    if (GET_BIT(ssq, 6)) { return PlayFlagpoleSlide(); }
     return;
   }
 
@@ -578,14 +578,14 @@ void Square1SfxHandler(void) {
 
   const u8 ssb = Square1SoundBuffer;
   if (ssb != 0) {
-    if (BIT(ssb, 7)) { return ContinueSndJump(); }
-    if (BIT(ssb, 0)) { return ContinueSndJump(); }
-    if (BIT(ssb, 1)) { return ContinueBumpThrow(); }
-    if (BIT(ssb, 2)) { return ContinueSwimStomp(); }
-    if (BIT(ssb, 3)) { return ContinueSmackEnemy(); }
-    if (BIT(ssb, 4)) { return ContinuePipeDownInj(); }
-    if (BIT(ssb, 5)) { return ContinueBumpThrow(); }
-    if (BIT(ssb, 6)) {
+    if (GET_BIT(ssb, 7)) { return ContinueSndJump(); }
+    if (GET_BIT(ssb, 0)) { return ContinueSndJump(); }
+    if (GET_BIT(ssb, 1)) { return ContinueBumpThrow(); }
+    if (GET_BIT(ssb, 2)) { return ContinueSwimStomp(); }
+    if (GET_BIT(ssb, 3)) { return ContinueSmackEnemy(); }
+    if (GET_BIT(ssb, 4)) { return ContinuePipeDownInj(); }
+    if (GET_BIT(ssb, 5)) { return ContinueBumpThrow(); }
+    if (GET_BIT(ssb, 6)) {
       Squ1_SfxLenCounter -= 1;
       if (Squ1_SfxLenCounter == 0) {
         StopSquare1Sfx();
@@ -772,7 +772,7 @@ void StopSquare2Sfx(void) {
 // SM2MAIN:d54c
 // Signature: [] -> []
 void Square2SfxHandler(void) {
-  if (BIT(Square2SoundBuffer, 6)) { return ContinueExtraLife(); }
+  if (GET_BIT(Square2SoundBuffer, 6)) { return ContinueExtraLife(); }
 
   // The original game modified (bit-shifted) Square2SoundQueue to test the bits, but the caller resets the value to 0 anyway, so we ignore changing it here
 
@@ -780,14 +780,14 @@ void Square2SfxHandler(void) {
 
   if (ssq != 0) {
     Square2SoundBuffer = ssq;
-    if (BIT(ssq, 7)) { return PlayBowserFall(); }
-    if (BIT(ssq, 0)) { return PlayCoinGrab(); }
-    if (BIT(ssq, 1)) { return PlayGrowPowerUp(); }
-    if (BIT(ssq, 2)) { return PlayGrowVine(); }
-    if (BIT(ssq, 3)) { return PlayBlast(); }
-    if (BIT(ssq, 4)) { return PlayTimerTick(); }
-    if (BIT(ssq, 5)) { return PlayPowerUpGrab(); }
-    if (BIT(ssq, 6)) { return PlayExtraLife(); }
+    if (GET_BIT(ssq, 7)) { return PlayBowserFall(); }
+    if (GET_BIT(ssq, 0)) { return PlayCoinGrab(); }
+    if (GET_BIT(ssq, 1)) { return PlayGrowPowerUp(); }
+    if (GET_BIT(ssq, 2)) { return PlayGrowVine(); }
+    if (GET_BIT(ssq, 3)) { return PlayBlast(); }
+    if (GET_BIT(ssq, 4)) { return PlayTimerTick(); }
+    if (GET_BIT(ssq, 5)) { return PlayPowerUpGrab(); }
+    if (GET_BIT(ssq, 6)) { return PlayExtraLife(); }
   }
 
   const u8 ssb = Square2SoundBuffer;
@@ -795,14 +795,14 @@ void Square2SfxHandler(void) {
   if (ssb == 0) {
     return;
   }
-  if (BIT(ssb, 7)) { return ContinueBowserFall(); }
-  if (BIT(ssb, 0)) { return ContinueCGrabTTick(); }
-  if (BIT(ssb, 1)) { return ContinueGrowItems(); }
-  if (BIT(ssb, 2)) { return ContinueGrowItems(); }
-  if (BIT(ssb, 3)) { return ContinueBlast(); }
-  if (BIT(ssb, 4)) { return ContinueCGrabTTick(); }
-  if (BIT(ssb, 5)) { return ContinuePowerUpGrab(); }
-  if (BIT(ssb, 6)) { return ContinueExtraLife(); }
+  if (GET_BIT(ssb, 7)) { return ContinueBowserFall(); }
+  if (GET_BIT(ssb, 0)) { return ContinueCGrabTTick(); }
+  if (GET_BIT(ssb, 1)) { return ContinueGrowItems(); }
+  if (GET_BIT(ssb, 2)) { return ContinueGrowItems(); }
+  if (GET_BIT(ssb, 3)) { return ContinueBlast(); }
+  if (GET_BIT(ssb, 4)) { return ContinueCGrabTTick(); }
+  if (GET_BIT(ssb, 5)) { return ContinuePowerUpGrab(); }
+  if (GET_BIT(ssb, 6)) { return ContinueExtraLife(); }
 }
 
 // SMB:f5c8
@@ -1323,7 +1323,7 @@ u8 LoadEnvelopeData(u8 idx) {
 #undef CAP_IDX_TO
 }
 
-#undef BIT
+#undef GET_BIT
 
 
 #ifdef SMB2J_MODE
